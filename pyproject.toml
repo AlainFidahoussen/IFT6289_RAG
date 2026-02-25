@@ -1,0 +1,50 @@
+[build-system]
+requires = ["flit_core >=3.2,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "ift6289_rag"
+version = "0.0.1"
+description = "Text Extraction Quality in Vision-Text Hybrid Retrieval: Controlled End-to-End QA Evaluation on Visually Rich Documents"
+authors = [
+  { name = "Alain Fidahoussen, Munyeong Kim, Aftab Gazali" },
+]
+license = { file = "LICENSE" }
+readme = "README.md"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License"
+]
+dependencies = [
+    "colpali-engine>=0.3.14",
+    "datasets>=4.5.0",
+    "ipykernel>=7.2.0",
+    "loguru",
+    "mkdocs",
+    "mteb>=2.9.0",
+    "pillow>=12.1.1",
+    "pip",
+    "pytest",
+    "python-dotenv",
+    "ruff",
+    "sentence-transformers>=5.2.3",
+    "torch>=2.10.0",
+    "tqdm",
+    "transformers>=5.2.0",
+    "typer",
+]
+requires-python = "~=3.13.0"
+
+
+[tool.ruff]
+line-length = 99
+src = ["ift6289_rag"]
+include = ["pyproject.toml", "ift6289_rag/**/*.py"]
+
+[tool.ruff.lint]
+extend-select = ["I"]  # Add import sorting
+
+[tool.ruff.lint.isort]
+known-first-party = ["ift6289_rag"]
+force-sort-within-sections = true
+
