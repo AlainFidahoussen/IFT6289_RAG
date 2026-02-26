@@ -6,55 +6,70 @@
 
 Text Extraction Quality in Vision-Text Hybrid Retrieval: Controlled End-to-End QA Evaluation on Visually Rich Documents
 
+
+## Two projects (uv)
+
+This repo contains two **separate uv projects**, each with its own `pyproject.toml` and lockfile:
+
+| Project               | Path                 | Use case                  | 
+|-----------------------|----------------------|---------------------------|
+| **visual-retriever**  | `visual_retriever/`  | ColEmbed, ViDoRe visual   |
+| **textual-retriever** | `textual_retriever/` | Jina v4, ViDoRe text-only |
+
+## Install and run
+
+**Visual retriever (ColEmbed):**
+```bash
+cd visual_retriever
+uv sync
+uv run visual_retriever/dataset.py # To build the data by pre-computing and saving embedding
+uv run visual_retriever/predict.py # To compute the NDCG@10
+```
+
+**Textual retriever (Jina v4):**
+```bash
+cd textual_retriever
+uv sync
+uv run textual_retriever/dataset.py # To build the data by pre-computing and saving embedding
+uv run textual_retriever/predict.py # To compute the NDCG@10
+```
+
 ## Project Organization
 
 ```
-├── LICENSE            <- Open-source license if one is chosen
-├── Makefile           <- Makefile with convenience commands like `make data` or `make train`
-├── README.md          <- The top-level README for developers using this project.
-├── data
-│   ├── external       <- Data from third party sources.
-│   ├── interim        <- Intermediate data that has been transformed.
-│   ├── processed      <- The final, canonical data sets for modeling.
-│   └── raw            <- The original, immutable data dump.
+├── LICENSE              <- Open-source license
+├── Makefile             <- Convenience commands (e.g. make data, make train)
+├── README.md            <- This file
 │
-├── docs               <- A default mkdocs project; see www.mkdocs.org for details
+├── textual_retriever    <- Text retrieval project (Jina v4)
+│   ├── pyproject.toml
+│   ├── uv.lock
+│   ├── data/            <- Dataset and caches (gitignored)
+│   │   └── processed
+│   ├── notebooks/
+│   └── textual_retriever <- Python package
+│       ├── __init__.py
+│       ├── config.py    <- Paths and settings
+│       ├── dataset.py   <- Data loading
+│       ├── features.py  <- Feature extraction / embedding cache
+│       ├── model.py     <- Model definition
+│       ├── predict.py   <- Inference and evaluation
+│       └── utils.py     <- Helpers (e.g. NDCG)
 │
-├── models             <- Trained and serialized models, model predictions, or model summaries
-│
-├── notebooks          <- Jupyter notebooks. Naming convention is a number (for ordering),
-│                         the creator's initials, and a short `-` delimited description, e.g.
-│                         `1.0-jqp-initial-data-exploration`.
-│
-├── pyproject.toml     <- Project configuration file with package metadata for 
-│                         ift6289_rag and configuration for tools like black
-│
-├── references         <- Data dictionaries, manuals, and all other explanatory materials.
-│
-├── reports            <- Generated analysis as HTML, PDF, LaTeX, etc.
-│   └── figures        <- Generated graphics and figures to be used in reporting
-│
-├── requirements.txt   <- The requirements file for reproducing the analysis environment, e.g.
-│                         generated with `pip freeze > requirements.txt`
-│
-├── setup.cfg          <- Configuration file for flake8
-│
-└── ift6289_rag   <- Source code for use in this project.
-    │
-    ├── __init__.py             <- Makes ift6289_rag a Python module
-    │
-    ├── config.py               <- Store useful variables and configuration
-    │
-    ├── dataset.py              <- Scripts to download or generate data
-    │
-    ├── features.py             <- Code to create features for modeling
-    │
-    ├── modeling                
-    │   ├── __init__.py 
-    │   ├── predict.py          <- Code to run model inference with trained models          
-    │   └── train.py            <- Code to train models
-    │
-    └── plots.py                <- Code to create visualizations
+└── visual_retriever     <- Visual retrieval project (ColEmbed)
+    ├── pyproject.toml
+    ├── uv.lock
+    ├── data/            <- Dataset and caches (gitignored)
+    │   └── processed
+    ├── notebooks/
+    └── visual_retriever  <- Python package
+        ├── __init__.py
+        ├── config.py
+        ├── dataset.py
+        ├── features.py
+        ├── model.py
+        ├── predict.py
+        └── utils.py
 ```
 
 --------
