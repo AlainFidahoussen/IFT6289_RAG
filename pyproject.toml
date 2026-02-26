@@ -35,6 +35,8 @@ dependencies = [
 ]
 requires-python = "~=3.13.0"
 
+# Jina v4 text-only needs transformers 4.x in a separate venv (conflicts with default).
+# In a new venv: uv pip install -e . --no-deps && uv pip install "transformers>=4.44.0,<5.0.0" torch torchvision "sentence-transformers>=5.2.0" pillow peft huggingface_hub
 
 [tool.ruff]
 line-length = 99

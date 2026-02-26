@@ -1,0 +1,26 @@
+[build-system]
+requires = ["flit_core >=3.2,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "textual-retriever"
+version = "0.1.0"
+description = "ViDoRe textual retriever (Jina v4)"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "datasets>=4.5.0",
+    "transformers>=4.44.0,<5.0.0",
+    "torch",
+    "torchvision",
+    "sentence-transformers>=5.2.0",
+    "pillow",
+    "peft",
+    "huggingface_hub",
+    "loguru>=0.7.3",
+    "typer",
+    "python-dotenv>=1.2.1",
+]
+
+[tool.ruff]
+line-length = 99

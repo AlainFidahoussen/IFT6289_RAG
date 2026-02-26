@@ -1,0 +1,51 @@
+"""ViDoRe v3 data loading (shared with textual retriever)."""
+
+from datasets import load_dataset
+from loguru import logger
+import typer
+
+from textual_retriever.model import load_jina_v4_textual
+from textual_retriever.features import precompute_markdown_embeddings, precompute_query_embeddings
+from textual_retriever.config import VIDORE_SUBSET, VIDORE_LANG
+from textual_retriever.config import CACHE_DIR_QUERY_EMBEDDINGS, CACHE_DIR_MARKDOWN_EMBEDDINGS
+
+app = typer.Typer()
+
+
+def load_data_vidore(subset: str = VIDORE_SUBSET, lang: str = VIDORE_LANG):
+    """Load ViDoRe v3 corpus, queries, qrels, and documents_metadata."""
+    dataset_name = f"vidore/vidore_v3_{subset}"
+
+    ds_corpus = load_dataset(dataset_name, "corpus", split="test")
+    ds_queries_full = load_dataset(dataset_name, "queries", split="test")
+    ds_qrels_full = load_dataset(dataset_name, "qrels", split="test")
+    ds_metadata = load_dataset(dataset_name, "documents_metadata", split="test")
+
+    ds_queries = ds_queries_full.filter(lambda x: x["language"] == lang)
+    query_ids = set(ds_queries["query_id"])
+    ds_qrels = ds_qrels_full.filter(lambda x: x["query_id"] in query_ids)
+
+    return ds_corpus, ds_queries, ds_qrels, ds_metadata
+
+
+@app.command()
+def main():
+    logger.info("Loading model...")
+    model = load_jina_v4_textual()
+
+    logger.info("Loading dataset...")
+    ds_corpus, ds_queries, ds_qrels, ds_metadata = load_data_vidore(
+        subset=VIDORE_SUBSET, lang=VIDORE_LANG
+    )
+
+    logger.info("Pre-computing query embeddings...")
+    precompute_query_embeddings(model, ds_queries, save_dir=CACHE_DIR_QUERY_EMBEDDINGS)
+
+    logger.info("Pre-computing markdown embeddings...")
+    precompute_markdown_embeddings(model, ds_corpus, save_dir=CACHE_DIR_MARKDOWN_EMBEDDINGS)
+
+    logger.success("Processing dataset complete.")
+
+
+if __name__ == "__main__":
+    app()

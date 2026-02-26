@@ -49,7 +49,7 @@ test:
 ## Run inference
 .PHONY: predict
 predict:
-	$(PYTHON_INTERPRETER) ift6289_rag/modeling/predict.py
+	$(PYTHON_INTERPRETER) ift6289_rag/visual_retriever/predict.py
 
 
 ## Set up Python interpreter environment
@@ -71,7 +71,7 @@ create_environment:
 ## Make dataset
 .PHONY: data
 data: requirements
-	$(PYTHON_INTERPRETER) ift6289_rag/dataset.py
+	$(PYTHON_INTERPRETER) ift6289_rag/visual_retriever/dataset.py
 
 
 #################################################################################
