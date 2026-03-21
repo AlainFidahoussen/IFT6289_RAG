@@ -1,12 +1,11 @@
-"""ViDoRe v3 data loading (shared with textual retriever)."""
-
 from datasets import load_dataset
 from loguru import logger
 import typer
 
-from textual_retriever.model import load_jina_v4_textual
-from textual_retriever.features import precompute_markdown_embeddings, precompute_query_embeddings
-from textual_retriever.config import VIDORE_SUBSET, VIDORE_LANG
+from textual_extraction.config import VIDORE_SUBSET, VIDORE_LANG
+from textual_extraction.model import load_deepseek_ocr_2
+from textual_extraction.features import precompute_markdown_embeddings
+from textual_extraction.config import CACHE_DIR_MARKDOWN_EMBEDDINGS
 
 app = typer.Typer()
 
@@ -28,26 +27,19 @@ def load_data_vidore(subset: str = VIDORE_SUBSET, lang: str = VIDORE_LANG):
 
 
 @app.command()
-def main(
-    subset: str = typer.Option(VIDORE_SUBSET, help="ViDoRe v3 subset name"),
-    lang: str = typer.Option(VIDORE_LANG, help="Query language filter"),
-):
-    cache_queries = f"jina_cache_queries_{subset}_{lang}"
-    cache_markdowns = f"jina_cache_markdowns_{subset}_{lang}"
-
+def main():
     logger.info("Loading model...")
-    model = load_jina_v4_textual()
+    model, tokenizer = load_deepseek_ocr_2()
 
     logger.info("Loading dataset...")
-    ds_corpus, ds_queries, ds_qrels, ds_metadata = load_data_vidore(subset=subset, lang=lang)
-
-    logger.info("Pre-computing query embeddings...")
-    precompute_query_embeddings(model, ds_queries, save_dir=cache_queries)
+    ds_corpus, ds_queries, ds_qrels, ds_metadata = load_data_vidore(
+        subset=VIDORE_SUBSET, lang=VIDORE_LANG
+    )
 
     logger.info("Pre-computing markdown embeddings...")
-    precompute_markdown_embeddings(model, ds_corpus, save_dir=cache_markdowns)
+    precompute_markdown_embeddings(model, tokenizer, ds_corpus, save_dir=CACHE_DIR_MARKDOWN_EMBEDDINGS)
 
-    logger.success(f"Processing complete. Subset: {subset} - Language: {lang}")
+    logger.success("Processing dataset complete.")
 
 
 if __name__ == "__main__":

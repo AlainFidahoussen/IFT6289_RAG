@@ -8,7 +8,6 @@ from visual_retriever.features import (
 )
 from visual_retriever.model import load_visual_retriever_model
 from visual_retriever.config import VIDORE_SUBSET, VIDORE_LANG
-from visual_retriever.config import CACHE_DIR_IMAGE_EMBEDDINGS, CACHE_DIR_QUERY_EMBEDDINGS
 
 app = typer.Typer()
 
@@ -30,22 +29,26 @@ def load_data_vidore(subset: str = VIDORE_SUBSET, lang: str = VIDORE_LANG):
 
 
 @app.command()
-def main():
+def main(
+    subset: str = typer.Option(VIDORE_SUBSET, help="ViDoRe v3 subset name"),
+    lang: str = typer.Option(VIDORE_LANG, help="Query language filter"),
+):
+    cache_pages = f"colembed_cache_pages_{subset}_{lang}"
+    cache_queries = f"colembed_cache_queries_{subset}_{lang}"
+
     logger.info("Loading model...")
     model = load_visual_retriever_model()
 
     logger.info("Loading dataset...")
-    ds_corpus, ds_queries, ds_qrels, ds_metadata = load_data_vidore(
-        subset=VIDORE_SUBSET, lang=VIDORE_LANG
-    )
+    ds_corpus, ds_queries, ds_qrels, ds_metadata = load_data_vidore(subset=subset, lang=lang)
 
     logger.info("Pre-computing image embeddings...")
-    precompute_image_embeddings(model, ds_corpus, save_dir=CACHE_DIR_IMAGE_EMBEDDINGS)
-    
-    logger.info("Pre-computing query embeddings...")
-    precompute_query_embeddings(model, ds_queries, save_dir=CACHE_DIR_QUERY_EMBEDDINGS)
+    precompute_image_embeddings(model, ds_corpus, save_dir=cache_pages)
 
-    logger.success("Processing dataset complete.")
+    logger.info("Pre-computing query embeddings...")
+    precompute_query_embeddings(model, ds_queries, save_dir=cache_queries)
+
+    logger.success(f"Processing complete. Subset: {subset} - Language: {lang}")
 
 
 if __name__ == "__main__":

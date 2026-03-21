@@ -1,3 +1,5 @@
+import csv
+from datetime import datetime
 from loguru import logger
 import typer
 
@@ -8,22 +10,27 @@ from textual_retriever.features import (
 )
 from textual_retriever.utils import evaluate_ndcg
 from textual_retriever.config import VIDORE_SUBSET, VIDORE_LANG
-from textual_retriever.config import CACHE_DIR_QUERY_EMBEDDINGS, CACHE_DIR_MARKDOWN_EMBEDDINGS
 
 app = typer.Typer()
 
 
 @app.command()
-def main():
+def main(
+    subset: str = typer.Option(VIDORE_SUBSET, help="ViDoRe v3 subset name"),
+    lang: str = typer.Option(VIDORE_LANG, help="Query language filter"),
+):
     """Evaluate NDCG@10 from precomputed embeddings only (no model load)."""
+    cache_queries = f"jina_cache_queries_{subset}_{lang}"
+    cache_markdowns = f"jina_cache_markdowns_{subset}_{lang}"
+
     logger.info("Loading dataset...")
-    ds_corpus, ds_queries, ds_qrels, ds_metadata = load_data_vidore(VIDORE_SUBSET, VIDORE_LANG)
+    ds_corpus, ds_queries, ds_qrels, ds_metadata = load_data_vidore(subset, lang)
 
     logger.info("Loading markdown embeddings...")
-    markdown_embeddings = load_precomputed_markdown_embeddings(ds_corpus, save_dir=CACHE_DIR_MARKDOWN_EMBEDDINGS)
+    markdown_embeddings = load_precomputed_markdown_embeddings(ds_corpus, save_dir=cache_markdowns)
 
     logger.info("Loading query embeddings...")
-    query_embeddings = load_precomputed_query_embeddings(ds_queries, save_dir=CACHE_DIR_QUERY_EMBEDDINGS)
+    query_embeddings = load_precomputed_query_embeddings(ds_queries, save_dir=cache_queries)
 
     query_id_to_embedding = dict(zip(ds_queries["query_id"], query_embeddings))
 
@@ -45,8 +52,17 @@ def main():
     )
 
     logger.success(
-        f"Inference complete. Subset: {VIDORE_SUBSET} - Language: {VIDORE_LANG} - NDCG@10: {ndcg_at_10:.1f}"
+        f"Inference complete. Subset: {subset} - Language: {lang} - NDCG@10: {ndcg_at_10:.1f}"
     )
+
+    results_file = "results_jina.csv"
+    write_header = not __import__("pathlib").Path(results_file).exists()
+    with open(results_file, "a", newline="") as f:
+        writer = csv.writer(f)
+        if write_header:
+            writer.writerow(["timestamp", "model", "subset", "lang", "ndcg_at_10"])
+        writer.writerow([datetime.now().isoformat(), "Jina-v4", subset, lang, f"{ndcg_at_10:.2f}"])
+    logger.info(f"Result appended to {results_file}")
 
 
 if __name__ == "__main__":

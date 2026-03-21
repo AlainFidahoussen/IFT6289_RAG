@@ -65,7 +65,7 @@ def evaluate_ndcg(
 
     ground_truth_pages = _relevants_from_qrels(qrels)
 
-    query_ids = list(ground_truth_pages.keys())
+    query_ids = sorted(ground_truth_pages.keys())
     query_id_to_embedding = dict(zip(query_ids, query_embeddings))
 
     ndcg_scores = []
