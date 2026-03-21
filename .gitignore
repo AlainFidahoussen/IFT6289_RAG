@@ -1,6 +1,7 @@
 # Data folders in retriever projects
 textual_retriever/data/
 visual_retriever/data/
+textual_extraction/data/
 
 # Mac OS-specific storage files
 .DS_Store
