@@ -13,8 +13,8 @@ PROCESSED_DATA_DIR = DATA_DIR / "processed"
 MODELS_DIR = PROJ_ROOT / "models"
 REPORTS_DIR = PROJ_ROOT / "reports"
 
-# VIDORE_SUBSET = "physics"  # "finance"
-VIDORE_SUBSET = "computer_science"
+VIDORE_SUBSET = "physics"  # "finance"
+# VIDORE_SUBSET = "computer_science"
 VIDORE_LANG = "english"
 
 CACHE_DIR_IMAGE_EMBEDDINGS = f"colembed_cache_pages_{VIDORE_SUBSET}_{VIDORE_LANG}"

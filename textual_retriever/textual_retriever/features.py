@@ -20,6 +20,8 @@ def precompute_query_embeddings(
     for query_id, query in tqdm(
         zip(ds_queries["query_id"], ds_queries["query"]), desc="Pre-computing query embeddings"
     ):
+        if (save_dir / f"{query_id}.pt").exists():
+            continue
         query_embedding = model.encode_text(
             texts=[query],
             prompt_name="query",
@@ -58,6 +60,8 @@ def precompute_markdown_embeddings(
         desc="Pre-computing markdown embeddings",
         total=len(ds_corpus["corpus_id"]),
     ):
+        if (save_dir / f"{corpus_id}.pt").exists():
+            continue
         emb = model.encode_text(
             texts=[markdown_text],
             prompt_name="passage",

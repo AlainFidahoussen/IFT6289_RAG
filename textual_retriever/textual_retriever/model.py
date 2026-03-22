@@ -2,8 +2,10 @@
 
 import torch
 from transformers import AutoModel
+from transformers.utils import is_flash_attn_2_available
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
+ATTN_IMPL = "flash_attention_2" if is_flash_attn_2_available() else "sdpa"
 
 
 def load_jina_v4_textual():
@@ -12,6 +14,7 @@ def load_jina_v4_textual():
         "jinaai/jina-embeddings-v4",
         trust_remote_code=True,
         torch_dtype=torch.float16,
+        attn_implementation=ATTN_IMPL,
     )
     model = model.to(device).eval()
     return model

@@ -20,6 +20,7 @@ dependencies = [
     "loguru>=0.7.3",
     "typer",
     "python-dotenv>=1.2.1",
+    "visidata>=3.3",
 ]
 
 [tool.ruff]

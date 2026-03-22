@@ -86,6 +86,8 @@ def precompute_query_embeddings(
     for query_id, query in tqdm(
         zip(ds_queries["query_id"], ds_queries["query"]), desc="Pre-computing query embeddings"
     ):
+        if (save_dir / f"{query_id}.pt").exists():
+            continue
         query_embedding = model.forward_queries([query]).to(torch.bfloat16)
         torch.save({"emb": query_embedding}, save_dir / f"{query_id}.pt")
 

@@ -18,6 +18,7 @@ dependencies = [
     "tqdm",
     "transformers>=5.2.0",
     "typer",
+    "visidata>=3.3",
 ]
 
 [tool.ruff]
