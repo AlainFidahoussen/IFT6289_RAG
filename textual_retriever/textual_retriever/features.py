@@ -46,17 +46,46 @@ def load_precomputed_query_embeddings(
     return query_embeddings
 
 
+def load_deepseek_markdowns_from_disk(ds_corpus, subset: str, lang: str) -> list[str]:
+    """Load DeepSeek-OCR-2 extracted markdown from textual_extraction cache.
+
+    Returns one string per corpus document (empty string if the file is missing).
+    """
+    from textual_retriever.config import PROJ_ROOT
+
+    extraction_dir = (
+        PROJ_ROOT.parent
+        / "textual_extraction"
+        / "data"
+        / "processed"
+        / f"deepseek_cache_markdowns_{subset}_{lang}"
+    )
+    texts = []
+    for corpus_id in ds_corpus["corpus_id"]:
+        path = extraction_dir / str(corpus_id) / "result.mmd"
+        texts.append(path.read_text(encoding="utf-8") if path.exists() else "")
+    return texts
+
+
 def precompute_markdown_embeddings(
     model,
     ds_corpus,
     save_dir: str = CACHE_DIR_MARKDOWN_EMBEDDINGS,
+    markdown_texts: list[str] | None = None,
 ):
-    """Precompute Jina embeddings for corpus markdown texts. Uses corpus_id and markdown columns."""
+    """Precompute Jina embeddings for corpus markdown texts.
+
+    Args:
+        markdown_texts: Override the markdown source. If None, uses ds_corpus["markdown"]
+                        (NeMo/built-in). Pass the output of load_deepseek_markdowns_from_disk()
+                        to embed DeepSeek-extracted text instead.
+    """
+    texts = markdown_texts if markdown_texts is not None else ds_corpus["markdown"]
     save_dir = PROCESSED_DATA_DIR / save_dir
     os.makedirs(save_dir, exist_ok=True)
 
     for corpus_id, markdown_text in tqdm(
-        zip(ds_corpus["corpus_id"], ds_corpus["markdown"]),
+        zip(ds_corpus["corpus_id"], texts),
         desc="Pre-computing markdown embeddings",
         total=len(ds_corpus["corpus_id"]),
     ):

@@ -17,7 +17,7 @@ REPORTS_DIR = PROJ_ROOT / "reports"
 VIDORE_SUBSET = "computer_science"
 VIDORE_LANG = "english"
 
-CACHE_DIR_MARKDOWN_EMBEDDINGS = f"deepseek_cache_markdowns_{VIDORE_SUBSET}_{VIDORE_LANG}"
+CACHE_DIR_DEEPSEEK_MARKDOWNS = f"deepseek_cache_markdowns_{VIDORE_SUBSET}_{VIDORE_LANG}"
 
 try:
     from tqdm import tqdm

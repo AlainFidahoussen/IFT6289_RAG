@@ -4,8 +4,7 @@ import typer
 
 from textual_extraction.config import VIDORE_SUBSET, VIDORE_LANG
 from textual_extraction.model import load_deepseek_ocr_2
-from textual_extraction.features import precompute_markdown_embeddings
-from textual_extraction.config import CACHE_DIR_MARKDOWN_EMBEDDINGS
+from textual_extraction.features import precompute_deepseek_markdowns
 
 app = typer.Typer()
 
@@ -27,19 +26,22 @@ def load_data_vidore(subset: str = VIDORE_SUBSET, lang: str = VIDORE_LANG):
 
 
 @app.command()
-def main():
+def main(
+    subset: str = typer.Option(VIDORE_SUBSET, help="ViDoRe v3 subset name"),
+    lang: str = typer.Option(VIDORE_LANG, help="Query language filter"),
+):
+    cache_dir = f"deepseek_cache_markdowns_{subset}_{lang}"
+
     logger.info("Loading model...")
     model, tokenizer = load_deepseek_ocr_2()
 
-    logger.info("Loading dataset...")
-    ds_corpus, ds_queries, ds_qrels, ds_metadata = load_data_vidore(
-        subset=VIDORE_SUBSET, lang=VIDORE_LANG
-    )
+    logger.info(f"Loading dataset: {subset} ({lang})...")
+    ds_corpus, _, _, _ = load_data_vidore(subset=subset, lang=lang)
 
-    logger.info("Pre-computing markdown embeddings...")
-    precompute_markdown_embeddings(model, tokenizer, ds_corpus, save_dir=CACHE_DIR_MARKDOWN_EMBEDDINGS)
+    logger.info("Extracting markdown with DeepSeek-OCR-2...")
+    precompute_deepseek_markdowns(model, tokenizer, ds_corpus, save_dir=cache_dir)
 
-    logger.success("Processing dataset complete.")
+    logger.success(f"Extraction complete. Subset: {subset} - Language: {lang}")
 
 
 if __name__ == "__main__":

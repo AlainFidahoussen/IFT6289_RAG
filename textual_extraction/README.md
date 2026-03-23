@@ -2,7 +2,7 @@
 
 OCR/parsing subproject for the ift6289_rag pipeline. Runs **DeepSeek-OCR-2** over ViDoRe v3 corpus page images and saves the extracted markdown to disk, which is then consumed by the `textual-retriever` subproject.
 
-This is the **variable under study**: swapping this extractor (e.g. DeepSeek-OCR-2 vs. NeMo Retriever extraction) is the core experimental manipulation of the project.
+This is the **variable under study**: swapping this extractor (DeepSeek-OCR-2 vs. NeMo Retriever extraction, used in the ViDoRe v3 paper) is the core experimental manipulation of the project.
 
 ## Role in the pipeline
 
@@ -12,7 +12,7 @@ ViDoRe v3 corpus images
         ▼
  textual_extraction/dataset.py   ← you are here
         │  DeepSeek-OCR-2
-        │  saves {corpus_id}.md per page
+        │  saves <corpus_id>/result.mmd per page
         ▼
  textual_retriever/dataset.py
         │  Jina v4 embeds the markdown
@@ -28,25 +28,36 @@ cd textual_extraction
 uv sync
 ```
 
-## Run
+## Run all subsets
 
 ```bash
-uv run textual_extraction/dataset.py
+bash run_all.sh
 ```
 
-This iterates over all corpus images for the configured subset, runs DeepSeek-OCR-2 inference on each, and saves the markdown output to:
+This runs DeepSeek-OCR-2 on the three active English subsets. Already-processed documents are skipped so the script is safe to resume after interruptions.
+
+## Run a single subset
+
+```bash
+uv run textual_extraction/dataset.py --subset computer_science --lang english
+```
+
+## Active subsets
+
+| Subset | Language |
+|---|---|
+| computer_science | english |
+| finance_en | english |
+| pharmaceuticals | english |
+
+## Cache layout
+
+Results are stored under `data/processed/` as one directory per corpus document:
 
 ```
-data/processed/<cache_dir>/{corpus_id}
-```
-
-Already-processed files are skipped on re-runs, so the script is safe to resume after interruptions.
-
-## Configuration
-
-Edit `textual_extraction/config.py` to change the active subset:
-
-```python
-VIDORE_SUBSET = "computer_science"   # or "physics", "finance", etc.
-VIDORE_LANG   = "english"
+deepseek_cache_markdowns_{subset}_{lang}/
+    {corpus_id}/
+        result.mmd          ← extracted markdown text
+        result_with_boxes.jpg
+        images/
 ```

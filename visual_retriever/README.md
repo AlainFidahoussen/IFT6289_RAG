@@ -32,7 +32,7 @@ uv sync
 bash run_all.sh
 ```
 
-This runs `dataset.py` + `predict.py` for all 8 public ViDoRe v3 subsets with the correct language per subset, and writes results to `results_colembed.csv`. Already-cached embeddings are skipped so the script is safe to resume after interruptions.
+This runs `dataset.py` + `predict.py` for the three active English subsets and writes results to `results_colembed.csv`. Already-cached embeddings are skipped so the script is safe to resume after interruptions.
 
 ## Run a single subset
 
@@ -41,20 +41,15 @@ uv run visual_retriever/dataset.py --subset computer_science --lang english
 uv run visual_retriever/predict.py --subset computer_science --lang english
 ```
 
-## Subsets and languages
+## Active subsets
 
-ViDoRe v3 has 8 public subsets (2 are private hold-out sets). Each subset must be queried in its correct language:
+Three English subsets are used for this study:
 
 | Subset | Language |
 |---|---|
 | computer_science | english |
 | finance_en | english |
 | pharmaceuticals | english |
-| hr | english |
-| industrial | english |
-| physics | french |
-| energy | french |
-| finance_fr | french |
 
 ## Comparison with the paper
 

@@ -5,7 +5,11 @@ from loguru import logger
 import typer
 
 from textual_retriever.model import load_jina_v4_textual
-from textual_retriever.features import precompute_markdown_embeddings, precompute_query_embeddings
+from textual_retriever.features import (
+    load_deepseek_markdowns_from_disk,
+    precompute_markdown_embeddings,
+    precompute_query_embeddings,
+)
 from textual_retriever.config import VIDORE_SUBSET, VIDORE_LANG
 
 app = typer.Typer()
@@ -31,9 +35,14 @@ def load_data_vidore(subset: str = VIDORE_SUBSET, lang: str = VIDORE_LANG):
 def main(
     subset: str = typer.Option(VIDORE_SUBSET, help="ViDoRe v3 subset name"),
     lang: str = typer.Option(VIDORE_LANG, help="Query language filter"),
+    source: str = typer.Option("nemo", help="Markdown source: 'nemo' (dataset built-in) or 'deepseek'"),
 ):
     cache_queries = f"jina_cache_queries_{subset}_{lang}"
-    cache_markdowns = f"jina_cache_markdowns_{subset}_{lang}"
+    cache_markdowns = (
+        f"jina_cache_markdowns_deepseek_{subset}_{lang}"
+        if source == "deepseek"
+        else f"jina_cache_markdowns_{subset}_{lang}"
+    )
 
     logger.info("Loading model...")
     model = load_jina_v4_textual()
@@ -44,10 +53,15 @@ def main(
     logger.info("Pre-computing query embeddings...")
     precompute_query_embeddings(model, ds_queries, save_dir=cache_queries)
 
-    logger.info("Pre-computing markdown embeddings...")
-    precompute_markdown_embeddings(model, ds_corpus, save_dir=cache_markdowns)
+    markdown_texts = None
+    if source == "deepseek":
+        logger.info("Loading DeepSeek-OCR-2 markdowns from disk...")
+        markdown_texts = load_deepseek_markdowns_from_disk(ds_corpus, subset, lang)
 
-    logger.success(f"Processing complete. Subset: {subset} - Language: {lang}")
+    logger.info(f"Pre-computing markdown embeddings (source={source})...")
+    precompute_markdown_embeddings(model, ds_corpus, save_dir=cache_markdowns, markdown_texts=markdown_texts)
+
+    logger.success(f"Processing complete. Subset: {subset} - Language: {lang} - Source: {source}")
 
 
 if __name__ == "__main__":

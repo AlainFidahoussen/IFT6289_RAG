@@ -28,7 +28,7 @@ ViDoRe v3 corpus (PDF page images + markdown)
 
 Steps 4–5 (answer generation and LLM judging) are not yet implemented. The current code covers steps 1–3 and reports **NDCG@10** as the retrieval metric.
 
-**Dataset:** `vidore/vidore_v3_{subset}` — 5 English + 3 French subsets, public split.
+**Dataset:** `vidore/vidore_v3_{subset}` — 3 English subsets (`computer_science`, `finance_en`, `pharmaceuticals`), public split.
 
 ## Subprojects
 
@@ -95,11 +95,7 @@ Embeddings are cached as individual `{id}.pt` files under `<subproject>/data/pro
 
 ## Active Subsets
 
-| Subproject | `VIDORE_SUBSET` (in `config.py`) |
-|---|---|
-| `visual_retriever` | `physics` |
-| `textual_retriever` | `computer_science` |
-| `textual_extraction` | `computer_science` |
+All three subprojects run the same three English subsets: `computer_science`, `finance_en`, `pharmaceuticals`.
 
 ## Project Organization
 

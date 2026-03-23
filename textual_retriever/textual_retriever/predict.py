@@ -1,10 +1,12 @@
 import csv
 from datetime import datetime
+from pathlib import Path
 from loguru import logger
 import typer
 
 from textual_retriever.dataset import load_data_vidore
 from textual_retriever.features import (
+    load_deepseek_markdowns_from_disk,
     load_precomputed_markdown_embeddings,
     load_precomputed_query_embeddings,
 )
@@ -18,10 +20,17 @@ app = typer.Typer()
 def main(
     subset: str = typer.Option(VIDORE_SUBSET, help="ViDoRe v3 subset name"),
     lang: str = typer.Option(VIDORE_LANG, help="Query language filter"),
+    rerank: bool = typer.Option(False, "--rerank/--no-rerank", help="Rerank with zerank-2"),
+    rerank_top_k: int = typer.Option(100, help="Number of dense candidates to rerank"),
+    source: str = typer.Option("nemo", help="Markdown source: 'nemo' (dataset built-in) or 'deepseek'"),
 ):
     """Evaluate NDCG@10 from precomputed embeddings only (no model load)."""
     cache_queries = f"jina_cache_queries_{subset}_{lang}"
-    cache_markdowns = f"jina_cache_markdowns_{subset}_{lang}"
+    cache_markdowns = (
+        f"jina_cache_markdowns_deepseek_{subset}_{lang}"
+        if source == "deepseek"
+        else f"jina_cache_markdowns_{subset}_{lang}"
+    )
 
     logger.info("Loading dataset...")
     ds_corpus, ds_queries, ds_qrels, ds_metadata = load_data_vidore(subset, lang)
@@ -43,25 +52,46 @@ def main(
     query_ids_sorted = sorted(set(q["query_id"] for q in qrels))
     query_embeddings_ordered = [query_id_to_embedding[qid] for qid in query_ids_sorted]
 
+    reranker = None
+    query_texts = None
+    corpus_texts = None
+    if rerank:
+        from textual_retriever.model import load_zerank2
+        logger.info("Loading zerank-2 reranker...")
+        reranker = load_zerank2()
+        query_id_to_text = dict(zip(ds_queries["query_id"], ds_queries["query"]))
+        query_texts = [query_id_to_text[qid] for qid in query_ids_sorted]
+        if source == "deepseek":
+            logger.info("Loading DeepSeek-OCR-2 markdowns for reranking...")
+            corpus_texts = load_deepseek_markdowns_from_disk(ds_corpus, subset, lang)
+        else:
+            corpus_texts = ds_corpus["markdown"]
+
     logger.info("Evaluating NDCG@10...")
     ndcg_at_10 = evaluate_ndcg(
         query_embeddings=query_embeddings_ordered,
         markdown_embeddings=markdown_embeddings,
         qrels=qrels,
         k=10,
+        reranker=reranker,
+        query_texts=query_texts,
+        corpus_texts=corpus_texts,
+        rerank_top_k=rerank_top_k,
     )
 
+    model_name = "Jina-v4+zerank-2" if rerank else "Jina-v4"
     logger.success(
-        f"Inference complete. Subset: {subset} - Language: {lang} - NDCG@10: {ndcg_at_10:.1f}"
+        f"Inference complete. Subset: {subset} - Language: {lang} - Source: {source} - NDCG@10: {ndcg_at_10:.1f}"
     )
 
-    results_file = "results_jina.csv"
-    write_header = not __import__("pathlib").Path(results_file).exists()
+    suffix = f"_{source}" if source != "nemo" else ""
+    results_file = f"results_jina_reranked{suffix}.csv" if rerank else f"results_jina{suffix}.csv"
+    write_header = not Path(results_file).exists()
     with open(results_file, "a", newline="") as f:
         writer = csv.writer(f)
         if write_header:
             writer.writerow(["timestamp", "model", "subset", "lang", "ndcg_at_10"])
-        writer.writerow([datetime.now().isoformat(), "Jina-v4", subset, lang, f"{ndcg_at_10:.2f}"])
+        writer.writerow([datetime.now().isoformat(), model_name, subset, lang, f"{ndcg_at_10:.2f}"])
     logger.info(f"Result appended to {results_file}")
 
 
