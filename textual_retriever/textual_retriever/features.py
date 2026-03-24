@@ -60,11 +60,12 @@ def load_deepseek_markdowns_from_disk(ds_corpus, subset: str, lang: str) -> list
         / "processed"
         / f"deepseek_cache_markdowns_{subset}_{lang}"
     )
-    texts = []
-    for corpus_id in ds_corpus["corpus_id"]:
-        path = extraction_dir / str(corpus_id) / "result.mmd"
-        texts.append(path.read_text(encoding="utf-8") if path.exists() else "")
-    return texts
+    return [
+        (extraction_dir / str(corpus_id) / "result.mmd").read_text(encoding="utf-8")
+        if (extraction_dir / str(corpus_id) / "result.mmd").exists()
+        else ""
+        for corpus_id in ds_corpus["corpus_id"]
+    ]
 
 
 def precompute_markdown_embeddings(
