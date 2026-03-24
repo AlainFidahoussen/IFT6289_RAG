@@ -75,6 +75,7 @@ def evaluate_ndcg(
         top_k_indices = get_top_k(
             model, query_embedding, pages_embeddings, k=k
         )  # Get the top k indices for this query
+        torch.cuda.empty_cache()
         relevance_at_rank = [
             gt_pages.get(idx, 0) for idx in top_k_indices
         ]  # Compute the relevance at rank for this query. Assign 0 if not in ground truth.
