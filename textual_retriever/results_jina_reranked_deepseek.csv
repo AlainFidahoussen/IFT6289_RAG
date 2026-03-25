@@ -1,0 +1,4 @@
+timestamp,model,subset,lang,ndcg_at_10
+2026-03-25T13:44:02.006916,Jina-v4+zerank-2,computer_science,english,82.37
+2026-03-25T13:16:12.549300,Jina-v4+zerank-2,finance_en,english,65.65
+2026-03-25T14:40:32.224020,Jina-v4+zerank-2,pharmaceuticals,english,65.05
