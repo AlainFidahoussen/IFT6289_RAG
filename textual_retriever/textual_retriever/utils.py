@@ -13,7 +13,7 @@ def rerank_candidates(
     reranker,
     query_text: str,
     candidate_texts: list[str],
-    batch_size: int = 8,
+    batch_size: int = 1,
 ) -> np.ndarray:
     """Score (query, passage) pairs with a CrossEncoder reranker."""
     pairs = [[query_text, t] for t in candidate_texts]

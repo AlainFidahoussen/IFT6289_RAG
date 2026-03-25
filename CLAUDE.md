@@ -21,7 +21,7 @@ Dataset: ViDoRe v3 (`vidore/vidore_v3_{subset}`) — 3 English subsets: `compute
 | 1 | Jina v4, NeMo | — | `textual_retriever/results_jina.csv` |
 | 2 | Jina v4, NeMo | zerank-2 | `textual_retriever/results_jina_reranked.csv` |
 | 3 | Jina v4, DeepSeek | — | `textual_retriever/results_jina_deepseek.csv` |
-| 4 | Jina v4, DeepSeek | zerank-2 | `textual_retriever/results_jina_reranked_deepseek.csv` *(pending)* |
+| 4 | Jina v4, DeepSeek | zerank-2 | `textual_retriever/results_jina_reranked_deepseek.csv` |
 | 5 | ColEmbed (visual) | — | `visual_retriever/results_colembed.csv` |
 
 ## NDCG@10 Results
@@ -31,20 +31,23 @@ Dataset: ViDoRe v3 (`vidore/vidore_v3_{subset}`) — 3 English subsets: `compute
 | NeMo, no rerank | 65.23 | 50.09 | 58.60 | 57.97 |
 | NeMo + zerank-2 | 83.01 | 72.76 | 69.50 | 75.09 |
 | DeepSeek, no rerank | 64.03 | 46.94 | 56.48 | 55.82 |
-| DeepSeek + zerank-2 | — | — | — | *(pending)* |
+| DeepSeek + zerank-2 | 82.37 | 65.65 | 65.05 | 71.02 |
 | ColEmbed (visual) | 78.04 | 68.60 | 67.23 | 71.29 |
 
 Paper baselines (cross-lingual avg, all subsets): Jina-v4 50.4 · Jina+zerank-2 63.6 · ColEmbed 59.8. Our higher scores are expected for monolingual English evaluation.
 
-## Why DeepSeek Underperforms NeMo (−2.3 pts avg)
+## Why DeepSeek Underperforms NeMo
+
+Without reranking: DeepSeek −2.15 pts avg (55.82 vs 57.97). With zerank-2: DeepSeek −4.07 pts avg (71.02 vs 75.09). The gap widens after reranking.
 
 1. **OCR output is noisy and long.** DeepSeek transcribes everything visible (captions, axis labels, footers, page numbers), which dilutes the semantic signal seen by Jina v4. NeMo produces shorter, denser text.
 2. **NeMo was optimized for retrieval; DeepSeek for faithfulness.** The ViDoRe v3 paper (Section 4.1, footnote 3) notes that even NeMo's simplest pipeline (no image descriptions) performed best — retrieval benefits from concise text.
+3. **Reranking amplifies the gap.** Zerank-2 lifts NeMo +17.1 pts but DeepSeek only +15.2 pts, suggesting DeepSeek's noisy text hurts re-ranking candidate quality.
 
-**Next actions (in order):**
-1. Delete DeepSeek embedding cache and re-embed with clean markdown
-2. Run `--deepseek --rerank` (zerank-2; expected to close much of the gap)
-3. Implement answer generation + LLM judging
+**Next actions:**
+1. Implement answer generation (Qwen2.5-VL-72B-4bit or Gemini-3-pro API)
+2. Implement LLM judging (GPT-5.2, binary correct/incorrect, pass@1)
+3. Final analysis: compare NDCG@10 vs answer accuracy across all conditions
 
 See `status.txt` for current task state.
 
