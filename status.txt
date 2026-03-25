@@ -5,11 +5,30 @@ Last updated: 2026-03-24
 [x] Jina v4, NeMo, no rerank — all 3 subsets
 [x] Jina v4, NeMo + zerank-2 — all 3 subsets
 [x] DeepSeek-OCR-2 extraction — all 3 subsets
-[x] Jina v4, DeepSeek, no rerank — all 3 subsets
+[x] Jina v4, DeepSeek, no rerank — all 3 subsets (embeddings regenerated)
+[~] Jina v4, DeepSeek + zerank-2 — in progress
 
 ## Next
-[ ] Delete DeepSeek embedding cache, re-embed with clean markdown, rerun results_jina_deepseek.csv
-[ ] Run: cd textual_retriever && bash run_all.sh --deepseek --rerank  →  results_jina_reranked_deepseek.csv
 [ ] Implement answer generation (Qwen2.5-VL-72B-4bit or Gemini-3-pro API)
 [ ] Implement LLM judging (GPT-5.2, binary correct/incorrect, pass@1)
 [ ] Final analysis: compare NDCG@10 vs answer accuracy across all conditions
+
+## Mitigating DeepSeek-OCR-2's blindness to figures/charts
+
+DeepSeek outputs image placeholders for visual content, so figures are invisible to the text stream.
+The generator can compensate at answer-generation time:
+
+**Primary (already in pipeline design)**
+- Send the top-5 retrieved page *images* (from ColEmbed) alongside the top-5 markdown texts to the
+  generator VLM. The model sees the actual figures directly — no OCR needed for visual content.
+  This is the ViDoRe v3 hybrid protocol and is already planned.
+
+**Alternatives if the hybrid context is insufficient**
+- Figure captioning: DeepSeek already extracts figure images to disk (images/0.jpg, etc.) alongside
+  the markdown. Run a captioning model (BLIP-2, LLaVA, or the generator VLM itself) on those
+  saved images and replace the placeholders with the generated captions before embedding. Targeted
+  and avoids re-running OCR.
+- Multimodal OCR prompt: ask DeepSeek (or another model) to describe figures inline as part of the
+  markdown. We tried this (prompt: "describe each figure in detail as part of the text flow") but
+  reverted because it did not improve NDCG@10. May still help answer accuracy — worth revisiting
+  after end-to-end QA is implemented.

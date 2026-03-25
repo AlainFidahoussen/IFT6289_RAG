@@ -30,7 +30,7 @@ Dataset: ViDoRe v3 (`vidore/vidore_v3_{subset}`) — 3 English subsets: `compute
 |---|---|---|---|---|
 | NeMo, no rerank | 65.23 | 50.09 | 58.60 | 57.97 |
 | NeMo + zerank-2 | 83.01 | 72.76 | 69.50 | 75.09 |
-| DeepSeek, no rerank | 63.67 | 46.62 | 56.74 | 55.68 |
+| DeepSeek, no rerank | 64.03 | 46.94 | 56.48 | 55.82 |
 | DeepSeek + zerank-2 | — | — | — | *(pending)* |
 | ColEmbed (visual) | 78.04 | 68.60 | 67.23 | 71.29 |
 
