@@ -4,146 +4,150 @@
 
 ## Research Goal
 
-This project is a controlled study of how **document parsing quality affects end-to-end QA** over visually rich scientific PDFs (figures, tables, equations) in a hybrid retrieval pipeline.
+Does replacing **NeMo Retriever extraction** with **DeepSeek-OCR-2** improve retrieval quality (NDCG@10) and answer accuracy in a hybrid retrieval pipeline over visually rich PDFs?
 
-The variable under study is the OCR/parsing step: we swap different extractors (**NeMo Retriever extraction** vs. **DeepSeek-OCR-2**) and measure their impact on retrieval quality (NDCG@10) and final answer accuracy, keeping all other components fixed.
+The OCR/parsing step is the only variable. All other components — retriever, reranker, generator, judge — are held fixed across conditions.
 
 ## Pipeline
 
-The full evaluation pipeline follows the [ViDoRe v3](https://huggingface.co/datasets/vidore/vidore_v3_physics) protocol:
+The full evaluation pipeline follows the [ViDoRe V3](https://arxiv.org/abs/2601.08620) protocol:
 
 ```
 ViDoRe v3 corpus (PDF page images + markdown)
          │
-         ├─── [1] Visual retrieval  ──── ColEmbed (Nemotron) ──────────────────────┐
-         │                                                                          │
-         └─── [2] Parsing / OCR  ──── DeepSeek-OCR-2 ──── [3] Textual retrieval   │
-                    ↑ variable                                  Jina v4             │
-                                                           (+ zerank-2 reranker)   │
-                                                                                    │
-                                    [4] Answer generation ── Gemini-3-pro ←────────┘
-                                          │
-                                    [5] LLM judge ── GPT-5.2
-                                    (Correct / Partially Correct / Incorrect)
+         ├─── [1] Visual retrieval  ──── ColEmbed-3B-v2 ────────────────────────┐
+         │                                                                        │
+         └─── [2] Parsing / OCR  ──── NeMo  ─┐                                  │
+                    ↑ variable                 ├── [3] Jina v4 + zerank-2 ────── │
+                                  DeepSeek ───┘                                  │
+                                                                                  ▼
+                                              [4] Answer generation ── qwen3.5:35b (Ollama)
+                                                        │
+                                              [5] LLM judge ── llama3.1:8b (Ollama)
+                                              (binary: Correct / Incorrect, pass@1)
 ```
 
-Steps 4–5 (answer generation and LLM judging) are not yet implemented. The current code covers steps 1–3 and reports **NDCG@10** as the retrieval metric.
+The paper uses Gemini 3 Pro for generation and GPT-5.2 for judging. We use local models via Ollama to keep costs at zero, and use different model families for generation and judging to avoid self-evaluation bias.
 
-### Hybrid context fed to the generator
+### Hybrid context
 
-For each query, the generation model receives:
+For each query, the generator receives:
 - **5 page images** from ColEmbed top-5 (visual stream)
-- **5 markdown texts** from Jina-v4+zerank-2 top-5 (textual stream)
-- The query itself
+- **5 markdown texts** from Jina-v4 + zerank-2 top-5 (textual stream)
 
-Pages are concatenated without removing duplicates — the same page may appear in both streams. On average ~7.35 unique pages per query (Table 11 of the paper), meaning ~2–3 pages appear in both streams.
-
-### LLM judge
-
-The paper uses **GPT-5.2 with medium reasoning effort** as the judge. It returns a **binary label** (Correct / Incorrect) in a pass@1 setting. The judge achieves Krippendorff's α = 0.91 across 5 independent runs, confirming high consistency.
-
-### Generation model
-
-The paper uses **Gemini 3 Pro** for the hybrid row (best non-oracle result in Table 3). Since Gemini 3 Pro is costly, the local alternative for this project is a multimodal VLM that fits in the available GPU (RTXA6000, 48GB VRAM). The generation model must accept both images and text in the same prompt.
-
-**Local alternatives fitting in 48GB:**
-
-| Model | VRAM (4-bit) | VRAM (bf16) | Notes |
-|---|---|---|---|
-| Qwen2.5-VL-72B | ~36GB | ~144GB | Best open-source quality; needs 4-bit quant |
-| Qwen2.5-VL-32B | ~16GB | ~64GB | Good balance; fits in 8-bit too |
-| InternVL2.5-26B | ~13GB | ~52GB | Strong alternative |
-| Qwen2.5-VL-7B | ~4GB | ~14GB | Fits natively in bf16; weaker |
-
-Qwen3-VL models may also be available (the paper uses Qwen3-VL-235B-A22B for bounding box evaluation); check HuggingFace for current sizes.
-
-**Dataset:** `vidore/vidore_v3_{subset}` — 3 English subsets (`computer_science`, `finance_en`, `pharmaceuticals`), public split.
+Pages are concatenated without deduplication — the same page may appear in both streams (~2–3 pages overlap on average per the paper).
 
 ## Experimental Conditions
 
-Two textual extraction conditions are compared, with visual retrieval (ColEmbed) kept fixed:
+| Condition | Modality | Reranker | TOP_K |
+|---|---|---|---|
+| `jina_nemo` | text | — | 5 |
+| `jina_nemo_reranked` | text | zerank-2 | 5 |
+| `jina_deepseek` | text | — | 5 |
+| `jina_deepseek_reranked` | text | zerank-2 | 5 |
+| `colembed` | image | — | 5 |
+| `hybrid_nemo` | hybrid | zerank-2 (text stream) | 5+5 |
+| `hybrid_deepseek` | hybrid | zerank-2 (text stream) | 5+5 |
 
-| Condition | Extractor | Markdown source |
-|---|---|---|
-| **Baseline** | NeMo Retriever extraction (NVIDIA Ingest) | Built into the ViDoRe v3 HuggingFace dataset |
-| **Experimental** | DeepSeek-OCR-2 | Re-extracted by `textual_extraction/` subproject |
+**Dataset:** `vidore/vidore_v3_{subset}` — 3 English subsets: `computer_science` (215 queries), `finance_en` (309 queries), `pharmaceuticals` (364 queries).
 
-### How each extractor handles images
+## Results
 
-**NeMo Retriever extraction** uses the simplest pipeline: it extracts text from each PDF page as markdown. Images (charts, figures, diagrams) are effectively ignored — no descriptions are generated. The ViDoRe v3 paper (footnote 3, Section 4.1) explicitly notes: *"Chunking within pages or providing image descriptions did not improve our results. Thus, we report the results of the simplest pipeline."*
+### Retrieval: NDCG@10
 
-**DeepSeek-OCR-2** is a dedicated document OCR model that processes the page as an image and produces markdown. It faithfully transcribes visible text including tables, code, and equations. For purely visual content (charts, photographs) it produces minimal output, similar to NeMo. The expected advantage is on pages with **complex layouts** — dense tables, multi-column text, equations — where OCR fidelity matters most.
+| Condition | CS | Finance | Pharma | avg |
+|---|---|---|---|---|
+| NeMo, no rerank | 65.23 | 50.09 | 58.60 | 57.97 |
+| NeMo + zerank-2 | 83.02 | 72.73 | 69.53 | **75.09** |
+| DeepSeek, no rerank | 64.03 | 46.94 | 56.48 | 55.82 |
+| DeepSeek + zerank-2 | 82.37 | 65.65 | 65.05 | 71.02 |
+| ColEmbed (visual) | 78.04 | 68.60 | 67.23 | 71.29 |
 
-### Where to expect differences
+Paper baselines (cross-lingual avg): Jina-v4 50.4 · Jina+zerank-2 63.6 · ColEmbed 59.8. Our higher scores are expected for monolingual English evaluation.
 
-- **Text-heavy pages with complex layout**: DeepSeek-OCR-2 may produce more accurate markdown, leading to better Jina v4 embeddings and higher NDCG@10.
-- **Image-dominant pages**: Neither extractor produces meaningful text; the visual stream (ColEmbed) handles these.
-- **End-to-end QA**: Even if NDCG@10 is similar, DeepSeek OCR may yield better answer accuracy by providing the LLM with more faithful page content. This is where the OCR quality signal is most likely to show up.
-- **Content type breakdown**: Per Figure 6 of the ViDoRe v3 paper, Image and Mixed content types score lowest even for the best visual retriever — the textual stream cannot recover these regardless of OCR quality.
+### Answer generation: pass@1 (computer_science only so far)
 
-### Key findings from the ViDoRe v3 paper (baseline)
+| Condition | Correct | Total | pass@1 |
+|---|---|---|---|
+| jina_nemo | 197 | 215 | 91.6% |
+| jina_deepseek | 195 | 215 | 90.7% |
+| jina_nemo_reranked | 199 | 215 | 92.6% |
+| jina_deepseek_reranked | 205 | 215 | **95.3%** |
+| colembed | 200 | 215 | 93.0% |
+| hybrid_nemo | 200 | 215 | 93.0% |
+| hybrid_deepseek | 205 | 215 | **95.3%** |
 
-From Table 1 and Table 2 (cross-lingual evaluation, NeMo extraction):
+Note: CS scores are inflated by parametric knowledge (48.6% of ViDoRe V3 queries are answerable without retrieval). Finance and Pharmaceuticals results pending.
 
-- Jina-v4 textual retrieval: **50.4** avg NDCG@10
-- Jina-v4 + zerank-2 reranker: **63.6** avg NDCG@10 (+13.2 points — largest gain of any configuration)
-- ColEmbed-3B-v2 visual retrieval: **59.8** avg NDCG@10
-- Visual retrievers consistently outperform textual ones at equivalent model size
-- Textual reranking (zerank-2) yields far larger gains than visual reranking (+13.2 vs +0.2)
+## Key Findings
 
-Our monolingual scores (English queries on English subsets) are expected to be **1–4 points higher** than Table 1, consistent with the paper's own monolingual vs. cross-lingual gap (Tables 9/10 vs. Table 1).
+**DeepSeek underperforms NeMo for retrieval:**
+- Without reranking: −2.15 pts avg
+- With zerank-2: −4.07 pts avg (gap widens with reranking)
+- Cause: DeepSeek transcribes everything verbatim (captions, footers, axis labels), diluting the semantic signal for Jina v4. NeMo produces shorter, denser text better suited for retrieval.
+
+**Visual context adds little on easy queries:**
+- hybrid_nemo == colembed (93.0%) on CS — images add no signal over text alone
+- The paper finds visual context helps on *hard* queries (+2.4–2.8 pts), not easy ones
+- ColEmbed and Jina+zerank-2 retrieve ~4/5 identical pages, so hybrid sends mostly duplicate context
 
 ## Subprojects
 
-The repo contains **three independent uv subprojects**, each with its own `pyproject.toml` and lockfile. All commands must be run from inside the subproject directory.
+Four independent uv subprojects — **all commands must be run from inside the subproject directory.**
 
 | Subproject | Path | Role |
 |---|---|---|
 | `visual-retriever` | `visual_retriever/` | Image-stream retrieval with ColEmbed (Nemotron) |
-| `textual-retriever` | `textual_retriever/` | Text-stream retrieval with Jina v4; supports `--source nemo` or `--source deepseek` |
-| `textual-extraction` | `textual_extraction/` | OCR/parsing via DeepSeek-OCR-2 — produces markdown consumed by textual-retriever |
+| `textual-retriever` | `textual_retriever/` | Text-stream retrieval with Jina v4; `--source nemo` or `--source deepseek` |
+| `textual-extraction` | `textual_extraction/` | OCR/parsing via DeepSeek-OCR-2 |
+| `answer-generation` | `answer_generation/` | Answer generation, LLM judging, and analysis |
 
 ## How to Run
 
-### 1. Visual retriever (ColEmbed)
+### 1. Retrieval
 
 ```bash
-cd visual_retriever
-uv sync
-bash run_all.sh   # embed + evaluate all three subsets → results_colembed.csv
-```
+# Visual (ColEmbed)
+cd visual_retriever && uv sync && bash run_all.sh
 
-### 2. Textual retriever — NeMo baseline
+# Textual — NeMo
+cd textual_retriever && uv sync
+bash run_all.sh               # → results_jina.csv
+bash run_all.sh --rerank      # → results_jina_reranked.csv
 
-```bash
+# OCR extraction (required for DeepSeek conditions)
+cd textual_extraction && uv sync && bash run_all.sh
+
+# Textual — DeepSeek
 cd textual_retriever
-uv sync
-bash run_all.sh                # no rerank → results_jina.csv
-bash run_all.sh --rerank       # + zerank-2 → results_jina_reranked.csv
+bash run_all.sh --deepseek             # → results_jina_deepseek.csv
+bash run_all.sh --deepseek --rerank    # → results_jina_reranked_deepseek.csv
 ```
 
-### 3. Textual extraction (DeepSeek-OCR-2)
+All retrieval scripts also save pre-computed per-query rankings as JSON for fast answer generation (no re-embedding needed at generation time).
+
+### 2. Answer generation
 
 ```bash
-cd textual_extraction
-uv sync
-bash run_all.sh   # run OCR on all three subsets, save markdown to data/processed/
+cd answer_generation && uv sync
+
+# Generate answers for one condition (resume-safe)
+bash run_all.sh --condition jina_nemo
+
+# Judge answers
+bash run_judge.sh --condition jina_nemo
+
+# Check progress across all conditions
+uv run check_progress.py
+
+# Final comparison table (NDCG@10 vs pass@1)
+uv run answer_generation/analyze.py
 ```
 
-### 4. Textual retriever — DeepSeek condition
+### 3. Lint / format
 
 ```bash
-cd textual_retriever
-bash run_all.sh --deepseek              # no rerank → results_jina_deepseek.csv
-bash run_all.sh --deepseek --rerank     # + zerank-2 → results_jina_reranked_deepseek.csv
-```
-
-### Linting / formatting (repo root)
-
-```bash
-make lint      # ruff format --check && ruff check
-make format    # ruff check --fix && ruff format
-make test      # pytest tests/
+make lint && make format
 ```
 
 ## Architecture
@@ -151,54 +155,27 @@ make test      # pytest tests/
 Each subproject follows the same layered pattern:
 
 ```
-config.py    → VIDORE_SUBSET, VIDORE_LANG, cache directory names, PROCESSED_DATA_DIR
-dataset.py   → load_data_vidore(): loads corpus/queries/qrels/metadata from HuggingFace
-model.py     → load_*(): loads the model from HuggingFace
-features.py  → precompute_*() / load_precomputed_*(): disk-cache embeddings/markdown as files
-predict.py   → typer CLI: loads cached data, calls evaluate_ndcg(), logs NDCG@10
-utils.py     → evaluate_ndcg(), ndcg_at_k() — pure evaluation logic
+config.py   → constants, cache paths, model names
+dataset.py  → load_data_vidore(): loads corpus/queries/qrels from HuggingFace
+model.py    → load_*(): loads model from HuggingFace or local
+features.py → precompute_*() / load_precomputed_*(): disk-cache embeddings as .pt files
+predict.py  → typer CLI: evaluation or generation entry point
+utils.py    → pure evaluation/generation logic
 ```
 
-Embeddings are cached as individual `{id}.pt` files under `<subproject>/data/processed/<cache_dir>/`. Re-running a script after an interruption resumes from where it left off — already-cached files are skipped.
+Embeddings cached as `{id}.pt` under `<subproject>/data/processed/<cache_dir>/`. Rankings cached as `rankings_{condition}_{subset}_{lang}.json`. All scripts are resume-safe.
 
-## Active Subsets
-
-All three subprojects run the same three English subsets: `computer_science`, `finance_en`, `pharmaceuticals`.
-
-## Project Organization
+## Project Layout
 
 ```
-├── Makefile
 ├── README.md
+├── CLAUDE.md                   ← implementation notes for Claude Code
+├── VIDORE.md                   ← detailed ViDoRe V3 benchmark description
+├── Makefile
 ├── visual_retriever/           ← ColEmbed image-stream retrieval
-│   ├── pyproject.toml
-│   ├── uv.lock
-│   ├── data/processed/         ← cached embeddings (gitignored)
-│   └── visual_retriever/
-│       ├── config.py
-│       ├── dataset.py
-│       ├── features.py
-│       ├── model.py
-│       ├── predict.py
-│       └── utils.py
-├── textual_retriever/          ← Jina v4 text-stream retrieval
-│   ├── pyproject.toml
-│   ├── uv.lock
-│   ├── data/processed/         ← cached embeddings (gitignored)
-│   └── textual_retriever/
-│       ├── config.py
-│       ├── dataset.py
-│       ├── features.py
-│       ├── model.py
-│       ├── predict.py
-│       └── utils.py
-└── textual_extraction/         ← DeepSeek-OCR-2 parsing
-    ├── pyproject.toml
-    ├── uv.lock
-    ├── data/processed/         ← cached markdown files (gitignored)
-    └── textual_extraction/
-        ├── config.py
-        ├── dataset.py
-        ├── features.py
-        └── model.py
+├── textual_retriever/          ← Jina v4 text-stream retrieval + zerank-2
+├── textual_extraction/         ← DeepSeek-OCR-2 parsing
+└── answer_generation/          ← generation (qwen3.5:35b) + judging (llama3.1:8b)
+    ├── results_answers.csv     ← pass@1 results per condition/subset
+    └── check_progress.py       ← generation and judging progress table
 ```
