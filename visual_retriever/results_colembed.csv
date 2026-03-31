@@ -1,4 +1,4 @@
 timestamp,model,subset,lang,ndcg_at_10
-2026-03-22T21:52:56.063277,ColEmbed-3B-v2,computer_science,english,78.04
-2026-03-23T00:41:29.105864,ColEmbed-3B-v2,finance_en,english,68.60
-2026-03-23T01:50:05.019663,ColEmbed-3B-v2,pharmaceuticals,english,67.23
+2026-03-27T20:47:48.496561,ColEmbed-3B-v2,computer_science,english,78.04
+2026-03-27T23:53:27.885566,ColEmbed-3B-v2,finance_en,english,68.60
+2026-03-28T00:35:08.673909,ColEmbed-3B-v2,pharmaceuticals,english,67.23

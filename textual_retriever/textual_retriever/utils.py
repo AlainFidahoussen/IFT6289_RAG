@@ -53,7 +53,8 @@ def evaluate_ndcg(
     query_texts: list[str] | None = None,
     corpus_texts: list[str] | None = None,
     rerank_top_k: int = 100,
-) -> float:
+    return_rankings: bool = False,
+) -> float | tuple[float, dict[int, list[int]]]:
     """Compute NDCG@k using precomputed query and markdown (dense) embeddings.
 
     Args:
@@ -65,9 +66,10 @@ def evaluate_ndcg(
         query_texts: Raw query strings, same order as query_embeddings. Required when reranker is set.
         corpus_texts: Raw corpus strings, same order as markdown_embeddings. Required when reranker is set.
         rerank_top_k: Number of dense-retrieval candidates to rerank per query.
+        return_rankings: If True, also return per-query top-k rankings as dict[query_id, list[corpus_id]].
 
     Returns:
-        Mean NDCG@k in 0–100 scale.
+        Mean NDCG@k in 0–100 scale, or (ndcg, rankings) if return_rankings is True.
     """
     ground_truth_pages = _relevants_from_qrels(qrels)
     query_ids = sorted(ground_truth_pages.keys())
@@ -81,6 +83,7 @@ def evaluate_ndcg(
     corpus = corpus / (norm + 1e-9)
 
     ndcg_scores = []
+    rankings: dict[int, list[int]] = {}
     for query_id in tqdm(ground_truth_pages, desc="NDCG@10"):
         q_emb = query_id_to_embedding[query_id]
         q = _to_numpy(q_emb)
@@ -105,9 +108,11 @@ def evaluate_ndcg(
             top_k_positions = np.argsort(-scores)[:k]
             top_k_corpus_ids = [int(p) for p in top_k_positions]
 
+        rankings[query_id] = top_k_corpus_ids
         gt_pages = ground_truth_pages[query_id]
         relevance_at_rank = [gt_pages.get(cid, 0) for cid in top_k_corpus_ids]
         ndcg_scores.append(ndcg_at_k(relevance_at_rank, gt_pages, k=k))
 
     ndcg_at_10_mean = sum(ndcg_scores) / len(ndcg_scores) if ndcg_scores else 0.0
-    return ndcg_at_10_mean * 100
+    ndcg = ndcg_at_10_mean * 100
+    return (ndcg, rankings) if return_rankings else ndcg

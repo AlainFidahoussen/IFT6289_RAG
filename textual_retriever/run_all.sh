@@ -55,7 +55,7 @@ for entry in "${SUBSETS[@]}"; do
         fi
     fi
 
-    PREDICT_ARGS=(--subset "$subset" --lang "$lang" --source "$SOURCE")
+    PREDICT_ARGS=(--subset "$subset" --lang "$lang" --source "$SOURCE" --save-rankings)
     $RERANK && PREDICT_ARGS+=(--rerank)
 
     if ! uv run textual_retriever/predict.py "${PREDICT_ARGS[@]}"; then

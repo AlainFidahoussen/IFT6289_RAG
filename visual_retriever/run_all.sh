@@ -19,7 +19,7 @@ for entry in "${SUBSETS[@]}"; do
     lang=$(echo "$entry" | awk '{print $2}')
     echo "====== $subset ($lang) ======"
     if ! uv run visual_retriever/dataset.py --subset "$subset" --lang "$lang" || \
-       ! uv run visual_retriever/predict.py --subset "$subset" --lang "$lang"; then
+       ! uv run visual_retriever/predict.py --subset "$subset" --lang "$lang" --save-rankings; then
         echo "ERROR: $subset ($lang) failed, skipping."
         FAILED+=("$subset ($lang)")
     fi
