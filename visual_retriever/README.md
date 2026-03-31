@@ -32,13 +32,13 @@ uv sync
 bash run_all.sh
 ```
 
-This runs `dataset.py` + `predict.py` for the three active English subsets and writes results to `results_colembed.csv`. Already-cached embeddings are skipped so the script is safe to resume after interruptions.
+This runs `dataset.py` + `predict.py` for the three active English subsets, writes results to `results_colembed.csv`, and saves per-query rankings to `data/processed/rankings_colembed_{subset}_{lang}.json`. Already-cached embeddings are skipped so the script is safe to resume after interruptions.
 
 ## Run a single subset
 
 ```bash
 uv run visual_retriever/dataset.py --subset computer_science --lang english
-uv run visual_retriever/predict.py --subset computer_science --lang english
+uv run visual_retriever/predict.py --subset computer_science --lang english --save-rankings
 ```
 
 ## Active subsets
@@ -51,9 +51,16 @@ Three English subsets are used for this study:
 | finance_en | english |
 | pharmaceuticals | english |
 
-## Comparison with the paper
+## Results (NDCG@10)
 
-Our scores are systematically **1–4 points higher** than Table 1 of the ViDoRe v3 paper. This is expected: Table 1 evaluates cross-lingually (queries in all 6 languages against English/French documents), while this code evaluates monolingually (English queries on English subsets, French queries on French subsets). The paper itself reports a 2–3 point gap between monolingual and cross-lingual settings (Tables 9/10 vs Table 1).
+| Subset | NDCG@10 |
+|---|---|
+| computer_science | 78.04 |
+| finance_en | 68.60 |
+| pharmaceuticals | 67.23 |
+| **avg** | **71.29** |
+
+Paper baseline (cross-lingual avg): 59.8. Our higher scores are expected for monolingual English evaluation (paper reports 2–3 pt gap between monolingual and cross-lingual settings).
 
 ## Cache layout
 
