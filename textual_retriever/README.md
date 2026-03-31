@@ -42,13 +42,13 @@ bash run_all.sh [--deepseek] [--rerank]
 | `bash run_all.sh --deepseek` | DeepSeek-OCR-2 | — | `results_jina_deepseek.csv` |
 | `bash run_all.sh --deepseek --rerank` | DeepSeek-OCR-2 | zerank-2 | `results_jina_reranked_deepseek.csv` |
 
-Already-cached embeddings are skipped so the script is safe to resume after interruptions. The `--rerank` flag skips the `dataset.py` embedding step (embeddings must already be cached).
+Already-cached embeddings are skipped so the script is safe to resume after interruptions. The `--rerank` flag skips the `dataset.py` embedding step (embeddings must already be cached). `--save-rankings` is always passed by `run_all.sh` to cache per-query rankings for answer generation.
 
 ## Run a single subset
 
 ```bash
 uv run textual_retriever/dataset.py --subset computer_science --lang english [--source deepseek]
-uv run textual_retriever/predict.py --subset computer_science --lang english [--source deepseek] [--rerank]
+uv run textual_retriever/predict.py --subset computer_science --lang english [--source deepseek] [--rerank] [--save-rankings]
 ```
 
 ## Active subsets
@@ -59,9 +59,16 @@ uv run textual_retriever/predict.py --subset computer_science --lang english [--
 | finance_en | english |
 | pharmaceuticals | english |
 
-## Comparison with the paper
+## Results (NDCG@10)
 
-Our scores are systematically **1–4 points higher** than Table 1 of the ViDoRe v3 paper. This is expected: Table 1 evaluates cross-lingually (queries in all 6 languages against English/French documents), while this code evaluates monolingually (English queries on English subsets, French queries on French subsets). The paper itself reports a 2–3 point gap between monolingual and cross-lingual settings (Tables 9/10 vs Table 1).
+| Condition | CS | Finance | Pharma | avg |
+|---|---|---|---|---|
+| NeMo, no rerank | 65.23 | 50.09 | 58.60 | 57.97 |
+| NeMo + zerank-2 | 83.02 | 72.73 | 69.53 | **75.09** |
+| DeepSeek, no rerank | 64.03 | 46.94 | 56.48 | 55.82 |
+| DeepSeek + zerank-2 | 82.37 | 65.65 | 65.05 | 71.02 |
+
+Paper baselines (cross-lingual avg): Jina-v4 50.4 · Jina+zerank-2 63.6. Our higher scores are expected for monolingual English evaluation (paper reports 2–3 pt gap between monolingual and cross-lingual settings).
 
 ## Cache layout
 
