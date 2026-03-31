@@ -1,19 +1,30 @@
-Last updated: 2026-03-25
+Last updated: 2026-03-31
 
 ## Done
-[x] ColEmbed visual retrieval — all 3 subsets
-[x] Jina v4, NeMo, no rerank — all 3 subsets
-[x] Jina v4, NeMo + zerank-2 — all 3 subsets
+[x] ColEmbed visual retrieval — all 3 subsets (avg NDCG@10: 71.29)
+[x] Jina v4, NeMo, no rerank — all 3 subsets (avg NDCG@10: 57.97)
+[x] Jina v4, NeMo + zerank-2 — all 3 subsets (avg NDCG@10: 75.09)
 [x] DeepSeek-OCR-2 extraction — all 3 subsets
-[x] Jina v4, DeepSeek, no rerank — all 3 subsets (embeddings regenerated)
-[x] Jina v4, DeepSeek + zerank-2 — all 3 subsets
-[x] answer_generation subproject scaffolded (qwen3.5:35b via Ollama for both generation and judging)
+[x] Jina v4, DeepSeek, no rerank — all 3 subsets (avg NDCG@10: 55.82)
+[x] Jina v4, DeepSeek + zerank-2 — all 3 subsets (avg NDCG@10: 71.02)
+[x] answer_generation subproject — generation (qwen3.5:35b) + judging (llama3.1:8b, different family)
+[x] Answer generation — all 7 conditions × 3 subsets
+[x] LLM judging — all 7 conditions × 3 subsets
+[x] Final pass@1 results (see results_answers.csv and README.md)
 
 ## Next
-[ ] Run answer generation: cd answer_generation && bash run_all.sh --condition hybrid_nemo
-[ ] Run answer generation for other conditions (see CLAUDE.md for condition list)
-[ ] Run judge: bash run_judge.sh --condition <condition>
-[ ] Final analysis: uv run answer_generation/analyze.py
+[ ] Final analysis writeup: compare NDCG@10 vs pass@1 across all conditions
+[ ] Run uv run answer_generation/analyze.py for combined comparison table
+
+## Key results summary
+pass@1 averages (CS / Finance / Pharma):
+  jina_nemo:              91.6 / 79.6 / 82.4  avg=84.5%
+  jina_nemo_reranked:     92.6 / 83.5 / 88.5  avg=88.2%
+  jina_deepseek:          90.7 / 73.8 / 82.4  avg=82.3%
+  jina_deepseek_reranked: 95.3 / 79.0 / 88.5  avg=87.6%
+  colembed:               93.0 / 74.8 / 83.2  avg=83.7%
+  hybrid_nemo:            93.0 / 79.9 / 87.9  avg=86.9%
+  hybrid_deepseek:        95.3 / 81.6 / 89.3  avg=88.7%  ← best overall
 
 ## What did not work
 
