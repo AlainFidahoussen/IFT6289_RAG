@@ -1,4 +1,5 @@
 import csv
+import json
 from datetime import datetime
 from pathlib import Path
 from loguru import logger
@@ -23,6 +24,7 @@ def main(
     rerank: bool = typer.Option(False, "--rerank/--no-rerank", help="Rerank with zerank-2"),
     rerank_top_k: int = typer.Option(100, help="Number of dense candidates to rerank"),
     source: str = typer.Option("nemo", help="Markdown source: 'nemo' (dataset built-in) or 'deepseek'"),
+    save_rankings: bool = typer.Option(False, "--save-rankings/--no-save-rankings", help="Save per-query top-k rankings to disk for answer generation"),
 ):
     """Evaluate NDCG@10 from precomputed embeddings only (no model load)."""
     cache_queries = f"jina_cache_queries_{subset}_{lang}"
@@ -68,7 +70,7 @@ def main(
             corpus_texts = ds_corpus["markdown"]
 
     logger.info("Evaluating NDCG@10...")
-    ndcg_at_10 = evaluate_ndcg(
+    result = evaluate_ndcg(
         query_embeddings=query_embeddings_ordered,
         markdown_embeddings=markdown_embeddings,
         qrels=qrels,
@@ -77,7 +79,12 @@ def main(
         query_texts=query_texts,
         corpus_texts=corpus_texts,
         rerank_top_k=rerank_top_k,
+        return_rankings=save_rankings,
     )
+    if save_rankings:
+        ndcg_at_10, rankings = result
+    else:
+        ndcg_at_10 = result
 
     model_name = "Jina-v4+zerank-2" if rerank else "Jina-v4"
     logger.success(
@@ -93,6 +100,16 @@ def main(
             writer.writerow(["timestamp", "model", "subset", "lang", "ndcg_at_10"])
         writer.writerow([datetime.now().isoformat(), model_name, subset, lang, f"{ndcg_at_10:.2f}"])
     logger.info(f"Result appended to {results_file}")
+
+    if save_rankings:
+        condition = f"jina_{source}_reranked" if rerank else f"jina_{source}"
+        rankings_path = Path(f"data/processed/rankings_{condition}_{subset}_{lang}.json")
+        rankings_path.parent.mkdir(parents=True, exist_ok=True)
+        rankings_path.write_text(
+            json.dumps({str(k): v for k, v in rankings.items()}, indent=2),
+            encoding="utf-8",
+        )
+        logger.info(f"Rankings saved to {rankings_path}")
 
 
 if __name__ == "__main__":

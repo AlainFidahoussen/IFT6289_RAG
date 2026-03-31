@@ -7,11 +7,13 @@ Last updated: 2026-03-25
 [x] DeepSeek-OCR-2 extraction — all 3 subsets
 [x] Jina v4, DeepSeek, no rerank — all 3 subsets (embeddings regenerated)
 [x] Jina v4, DeepSeek + zerank-2 — all 3 subsets
+[x] answer_generation subproject scaffolded (qwen3.5:35b via Ollama for both generation and judging)
 
 ## Next
-[ ] Implement answer generation (Qwen2.5-VL-72B-4bit or Gemini-3-pro API)
-[ ] Implement LLM judging (GPT-5.2, binary correct/incorrect, pass@1)
-[ ] Final analysis: compare NDCG@10 vs answer accuracy across all conditions
+[ ] Run answer generation: cd answer_generation && bash run_all.sh --condition hybrid_nemo
+[ ] Run answer generation for other conditions (see CLAUDE.md for condition list)
+[ ] Run judge: bash run_judge.sh --condition <condition>
+[ ] Final analysis: uv run answer_generation/analyze.py
 
 ## What did not work
 

@@ -49,6 +49,7 @@ def evaluate_ndcg(
     pages_embeddings: list[torch.Tensor],
     qrels: Iterable[dict],
     k: int = 10,
+    return_rankings: bool = False,
 ):
     """Compute NDCG@k using precomputed query and page embeddings.
 
@@ -58,9 +59,10 @@ def evaluate_ndcg(
         qrels: Iterable of dicts with keys query_id, corpus_id, score (relevance 0/1/2).
         pages_embeddings: List of page embedding tensors; index i = corpus position i.
         k: Rank cutoff for NDCG@k.
+        return_rankings: If True, also return per-query top-k rankings as dict[query_id, list[corpus_id]].
 
     Returns:
-        Mean NDCG@k in 0–100 scale.
+        Mean NDCG@k in 0–100 scale, or (ndcg, rankings) if return_rankings is True.
     """
 
     ground_truth_pages = _relevants_from_qrels(qrels)
@@ -69,21 +71,16 @@ def evaluate_ndcg(
     query_id_to_embedding = dict(zip(query_ids, query_embeddings))
 
     ndcg_scores = []
+    rankings: dict[int, list[int]] = {}
     for query_id in tqdm(ground_truth_pages, desc="NDCG@10"):
-        query_embedding = query_id_to_embedding[query_id]  # Get the embedding for this query
-        gt_pages = ground_truth_pages[query_id]  # Get the ground truth pages for this query
-        top_k_indices = get_top_k(
-            model, query_embedding, pages_embeddings, k=k
-        )  # Get the top k indices for this query
+        query_embedding = query_id_to_embedding[query_id]
+        gt_pages = ground_truth_pages[query_id]
+        top_k_indices = get_top_k(model, query_embedding, pages_embeddings, k=k)
         torch.cuda.empty_cache()
-        relevance_at_rank = [
-            gt_pages.get(idx, 0) for idx in top_k_indices
-        ]  # Compute the relevance at rank for this query. Assign 0 if not in ground truth.
-        ndcg_scores.append(
-            ndcg_at_k(relevance_at_rank, gt_pages, k=k)
-        )  # Compute the NDCG@k for this query
+        rankings[query_id] = [int(i) for i in top_k_indices]
+        relevance_at_rank = [gt_pages.get(idx, 0) for idx in top_k_indices]
+        ndcg_scores.append(ndcg_at_k(relevance_at_rank, gt_pages, k=k))
 
-    ndcg_at_10_mean = (
-        sum(ndcg_scores) / len(ndcg_scores) if ndcg_scores else 0.0
-    )  # Compute the mean NDCG@10
-    return ndcg_at_10_mean * 100  # Return the mean NDCG@10 in 0–100 scale
+    ndcg_at_10_mean = sum(ndcg_scores) / len(ndcg_scores) if ndcg_scores else 0.0
+    ndcg = ndcg_at_10_mean * 100
+    return (ndcg, rankings) if return_rankings else ndcg
