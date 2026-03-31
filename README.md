@@ -65,19 +65,19 @@ Pages are concatenated without deduplication — the same page may appear in bot
 
 Paper baselines (cross-lingual avg): Jina-v4 50.4 · Jina+zerank-2 63.6 · ColEmbed 59.8. Our higher scores are expected for monolingual English evaluation.
 
-### Answer generation: pass@1 (computer_science only so far)
+### Answer generation: pass@1
 
-| Condition | Correct | Total | pass@1 |
-|---|---|---|---|
-| jina_nemo | 197 | 215 | 91.6% |
-| jina_deepseek | 195 | 215 | 90.7% |
-| jina_nemo_reranked | 199 | 215 | 92.6% |
-| jina_deepseek_reranked | 205 | 215 | **95.3%** |
-| colembed | 200 | 215 | 93.0% |
-| hybrid_nemo | 200 | 215 | 93.0% |
-| hybrid_deepseek | 205 | 215 | **95.3%** |
+| Condition | CS | Finance | Pharma | avg |
+|---|---|---|---|---|
+| jina_nemo | 91.6% | 79.6% | 82.4% | 84.5% |
+| jina_nemo_reranked | 92.6% | 83.5% | 88.5% | **88.2%** |
+| jina_deepseek | 90.7% | 73.8% | 82.4% | 82.3% |
+| jina_deepseek_reranked | 95.3% | 79.0% | 88.5% | 87.6% |
+| colembed | 93.0% | 74.8% | 83.2% | 83.7% |
+| hybrid_nemo | 93.0% | 79.9% | 87.9% | 86.9% |
+| hybrid_deepseek | **95.3%** | **81.6%** | **89.3%** | **88.7%** |
 
-Note: CS scores are inflated by parametric knowledge (48.6% of ViDoRe V3 queries are answerable without retrieval). Finance and Pharmaceuticals results pending.
+Note: CS scores are inflated by parametric knowledge (48.6% of ViDoRe V3 queries are answerable without retrieval). Finance and Pharma better reflect true retrieval-dependent performance.
 
 ## Key Findings
 
@@ -86,10 +86,11 @@ Note: CS scores are inflated by parametric knowledge (48.6% of ViDoRe V3 queries
 - With zerank-2: −4.07 pts avg (gap widens with reranking)
 - Cause: DeepSeek transcribes everything verbatim (captions, footers, axis labels), diluting the semantic signal for Jina v4. NeMo produces shorter, denser text better suited for retrieval.
 
-**Visual context adds little on easy queries:**
-- hybrid_nemo == colembed (93.0%) on CS — images add no signal over text alone
-- The paper finds visual context helps on *hard* queries (+2.4–2.8 pts), not easy ones
-- ColEmbed and Jina+zerank-2 retrieve ~4/5 identical pages, so hybrid sends mostly duplicate context
+**Visual context helps on harder subsets:**
+- On CS (easy, parametric knowledge), hybrid_nemo == colembed (93.0%) — images add no signal
+- On Finance and Pharma (more visual content), hybrid outperforms pure text and pure image:
+  hybrid_deepseek achieves the best avg (88.7%), beating jina_nemo_reranked (88.2%) and colembed (83.7%)
+- ColEmbed and Jina+zerank-2 retrieve ~4/5 identical pages, so hybrid diversifies context mainly on harder domains
 
 ## Subprojects
 
