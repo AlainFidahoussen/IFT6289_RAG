@@ -1,7 +1,9 @@
-# Data folders in retriever projects
+# Data folders (cached embeddings, answers, judgments)
 textual_retriever/data/
 visual_retriever/data/
 textual_extraction/data/
+answer_generation/data/
+answer_generation_no_retrieval/data/
 
 # Mac OS-specific storage files
 .DS_Store
