@@ -1,23 +1,61 @@
-Last updated: 2026-03-31
+Last updated: 2026-04-17
 
 ## Done
-[x] ColEmbed visual retrieval — all 3 subsets (avg NDCG@10: 71.29)
-[x] Jina v4, NeMo, no rerank — all 3 subsets (avg NDCG@10: 57.97)
-[x] Jina v4, NeMo + zerank-2 — all 3 subsets (avg NDCG@10: 75.09)
-[x] DeepSeek-OCR-2 extraction — all 3 subsets
-[x] Jina v4, DeepSeek, no rerank — all 3 subsets (avg NDCG@10: 55.82)
-[x] Jina v4, DeepSeek + zerank-2 — all 3 subsets (avg NDCG@10: 71.02)
-[x] answer_generation subproject — generation (qwen3.5:35b) + judging (llama3.1:8b, different family)
-[x] Answer generation — all 7 conditions × 3 subsets
-[x] LLM judging — all 7 conditions × 3 subsets
-[x] Final pass@1 results (see results_answers.csv and README.md)
+[x] ColEmbed visual retrieval — all 3 English subsets (avg NDCG@10: 71.29)
+[x] Jina v4, NeMo, no rerank — all 3 English subsets (avg NDCG@10: 57.97)
+[x] Jina v4, NeMo + zerank-2 — all 3 English subsets (avg NDCG@10: 75.09)
+[x] DeepSeek-OCR-2 extraction — all 3 English subsets
+[x] Jina v4, DeepSeek, no rerank — all 3 English subsets (avg NDCG@10: 55.82)
+[x] Jina v4, DeepSeek + zerank-2 — all 3 English subsets (avg NDCG@10: 71.02)
+[x] answer_generation subproject — generation (qwen3.5:35b) + judging (llama3.1:8b)
+[x] Answer generation — all 7 conditions × 3 English subsets
+[x] LLM judging — all 7 conditions × 3 English subsets
+[x] Midway report submitted (references/midreport.pdf)
+[x] Closed-book (no retrieval) ablation — all 3 English subsets (avg pass@1 72.0%)
+[x] Closed-book ablation on finance_fr (French): 40.6% pass@1 — baseline established
+[x] Smoke test: qwen3.5:35b generates French, llama3.1:8b judges French correctly
+[x] DeepSeek-OCR-2 verified to produce clean French markdown (physics + finance_fr)
+[x] Reusable physics caches renamed from _english → _french:
+    - colembed_cache_pages_physics_french (1674 page embeddings)
+    - jina_cache_markdowns_physics_french (NeMo markdown embeddings)
+[x] Physics (French) — DeepSeek OCR complete (1674 pages, ~4h)
+[x] Physics (French) — 5 retrieval rankings (NDCG@10 43.7/49.1/40.6/46.6/47.8)
+[x] Physics (French) — answer generation, all 7 conditions × 302 FR queries
+[x] Physics (French) — LLM judging, all 7 conditions (pass@1 best = 92.1%, jina_nemo_reranked)
+[x] Bug fixes during French runs:
+    - answer_generation/model.py: add num_predict=1024 cap (qwen was running unbounded
+      enumerations on "list all" queries; caused hang at query 131 of hybrid_nemo)
+    - answer_generation/utils.py: normalize non-binary judge labels
+      ("Partially Correct") to "Incorrect" instead of raising ValueError
 
-## Next
-[ ] Final analysis writeup: compare NDCG@10 vs pass@1 across all conditions
-[ ] Run uv run answer_generation/analyze.py for combined comparison table
+## In progress
+[~] DeepSeek-OCR-2 extraction — finance_fr (French), 229/2384 pages (~9.6%), ETA ~9h
+    - Task id: b4rk2ks28 (running in background)
 
-## Key results summary
-pass@1 averages (CS / Finance / Pharma):
+## Next (once finance_fr OCR completes)
+[ ] Retrievals on finance_fr FR (FR query embeddings + DeepSeek markdown embeddings)
+[ ] Answer generation on finance_fr FR — 7 conditions × 320 FR queries
+[ ] LLM judging on finance_fr FR — 7 conditions
+[ ] Analysis: does the physics FR pattern (text-reranked > hybrid) hold on finance_fr,
+    or does the English pattern (hybrid_deepseek best) return?
+
+## Deferred (not for Thursday poster)
+[ ] Cross-lingual comparison on physics: FR queries vs EN queries against same FR corpus
+    - Partial caches already exist (colembed_cache_queries_physics_english, jina_cache_queries_physics_english)
+    - Roughly doubles gen+judge time; save for final report
+
+## Deferred (not for Thursday poster)
+[ ] Cross-lingual comparison on physics: FR queries vs EN queries against same FR corpus
+    - Partial caches already exist (colembed_cache_queries_physics_english, jina_cache_queries_physics_english)
+    - Roughly doubles gen+judge time; save for final report
+
+## Open questions
+- Does language-drift matter for non-closed-book conditions?
+  Closed-book finance_fr showed ~7% English drift; in hybrid/text conditions the FR documents
+  should anchor the generator to French. Will verify after first condition finishes.
+
+## Key English results (finalized in midway report)
+pass@1 averages (CS / Finance / Pharma) — all English:
   jina_nemo:              91.6 / 79.6 / 82.4  avg=84.5%
   jina_nemo_reranked:     92.6 / 83.5 / 88.5  avg=88.2%
   jina_deepseek:          90.7 / 73.8 / 82.4  avg=82.3%
@@ -25,6 +63,34 @@ pass@1 averages (CS / Finance / Pharma):
   colembed:               93.0 / 74.8 / 83.2  avg=83.7%
   hybrid_nemo:            93.0 / 79.9 / 87.9  avg=86.9%
   hybrid_deepseek:        95.3 / 81.6 / 89.3  avg=88.7%  ← best overall
+closed_book:              91.6 / 56.0 / 68.4  avg=72.0%  (no retrieval baseline)
+
+## Physics French results (new)
+NDCG@10:
+  jina_nemo:              43.7
+  jina_nemo_reranked:     49.1
+  jina_deepseek:          40.6
+  jina_deepseek_reranked: 46.6
+  colembed:               47.8
+
+pass@1:
+  jina_nemo:              87.1%
+  jina_nemo_reranked:     92.1%  ← best overall on physics FR
+  jina_deepseek:          83.8%
+  jina_deepseek_reranked: 90.1%
+  colembed:               83.1%
+  hybrid_nemo:            86.8%
+  hybrid_deepseek:        89.7%
+
+Observations on physics FR vs English:
+- Pattern partially flips: best condition shifts from hybrid_deepseek (EN) to
+  jina_nemo_reranked (physics FR). Reranked text-only beats hybrid by +2.4 pts.
+- Reranker more effective on physics FR: +5.0 pts NeMo, +6.3 pts DeepSeek
+  (vs +3.7 / +5.3 pts on English avg).
+- NeMo-DeepSeek text gap widens slightly on physics FR (+3.3 unreranked) vs
+  English avg (+2.2 unreranked).
+- ColEmbed is the weakest single-stream on physics FR (83.1) — strong text
+  retrieval dominates on scientific French text.
 
 ## What did not work
 

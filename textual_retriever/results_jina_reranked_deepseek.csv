@@ -2,3 +2,4 @@ timestamp,model,subset,lang,ndcg_at_10
 2026-03-27T12:07:24.275040,Jina-v4+zerank-2,computer_science,english,82.37
 2026-03-27T13:28:19.434854,Jina-v4+zerank-2,finance_en,english,65.65
 2026-03-27T13:55:47.740434,Jina-v4+zerank-2,pharmaceuticals,english,65.05
+2026-04-16T23:11:48.228617,Jina-v4+zerank-2,physics,french,46.57

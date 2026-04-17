@@ -30,9 +30,11 @@ if [ -z "$CONDITION" ]; then
 fi
 
 SUBSETS=(
-    #"computer_science english"
+    "computer_science english"
     "finance_en       english"
     "pharmaceuticals  english"
+    "finance_fr       french"
+    "physics          french"
 )
 
 FAILED=()

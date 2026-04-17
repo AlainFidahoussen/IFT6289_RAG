@@ -45,7 +45,7 @@ class OllamaClient:
             "stream": False,
             "keep_alive": -1,
             "think": False,
-            "options": {"temperature": 0},
+            "options": {"temperature": 0, "num_predict": 1024},
         }
         if response_format == "json":
             payload["format"] = "json"
