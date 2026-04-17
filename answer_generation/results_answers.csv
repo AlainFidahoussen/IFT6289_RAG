@@ -20,3 +20,10 @@ timestamp,condition,subset,lang,pass_at_1,num_correct,num_total
 2026-03-30T15:29:22.984238,hybrid_deepseek,computer_science,english,0.9535,205,215
 2026-03-31T10:12:10.176402,hybrid_deepseek,finance_en,english,0.8155,252,309
 2026-03-31T10:22:47.436335,hybrid_deepseek,pharmaceuticals,english,0.8929,325,364
+2026-04-17T13:53:32.071591,jina_nemo,physics,french,0.8709,263,302
+2026-04-17T14:10:56.387207,colembed,physics,french,0.8311,251,302
+2026-04-17T14:20:10.026782,hybrid_nemo,physics,french,0.8675,262,302
+2026-04-17T14:29:27.506252,hybrid_deepseek,physics,french,0.8974,271,302
+2026-04-17T15:19:44.661855,jina_nemo_reranked,physics,french,0.9205,278,302
+2026-04-17T15:24:23.898774,jina_deepseek,physics,french,0.8377,253,302
+2026-04-17T15:32:09.958675,jina_deepseek_reranked,physics,french,0.9007,272,302

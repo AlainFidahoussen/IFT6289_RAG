@@ -2,3 +2,4 @@ timestamp,condition,subset,lang,pass_at_1,num_correct,num_total
 2026-04-03T09:30:24.355296,closed_book,computer_science,english,0.9163,197,215
 2026-04-03T09:30:26.154469,closed_book,finance_en,english,0.5599,173,309
 2026-04-03T09:38:51.689560,closed_book,pharmaceuticals,english,0.6841,249,364
+2026-04-16T18:14:07.188423,closed_book,finance_fr,french,0.4062,130,320

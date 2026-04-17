@@ -99,6 +99,12 @@ def parse_judge_response(query_id: int, raw: str) -> JudgmentResult:
                 judgment=judgment,
                 explanation=data.get("explanation", ""),
             )
+        if judgment:
+            return JudgmentResult(
+                query_id=query_id,
+                judgment="Incorrect",
+                explanation=data.get("explanation", f"Non-binary judgment normalized: {judgment}"),
+            )
     except json.JSONDecodeError:
         pass
 

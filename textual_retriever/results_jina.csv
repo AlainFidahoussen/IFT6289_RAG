@@ -2,3 +2,4 @@ timestamp,model,subset,lang,ndcg_at_10
 2026-03-27T19:49:33.642209,Jina-v4,computer_science,english,65.23
 2026-03-27T19:49:51.802709,Jina-v4,finance_en,english,50.09
 2026-03-27T19:50:12.666220,Jina-v4,pharmaceuticals,english,58.60
+2026-04-16T22:22:48.821621,Jina-v4,physics,french,43.69

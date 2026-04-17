@@ -11,6 +11,8 @@ TOTAL_QUERIES = {
     "computer_science": 215,
     "finance_en": 309,
     "pharmaceuticals": 364,
+    "physics": 302,
+    "finance_fr": 320,
 }
 SUBSETS = list(TOTAL_QUERIES)
 CONDITIONS = [
