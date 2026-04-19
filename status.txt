@@ -1,4 +1,4 @@
-Last updated: 2026-04-17
+Last updated: 2026-04-18
 
 ## Done
 [x] ColEmbed visual retrieval — all 3 English subsets (avg NDCG@10: 71.29)
@@ -22,22 +22,20 @@ Last updated: 2026-04-17
 [x] Physics (French) — 5 retrieval rankings (NDCG@10 43.7/49.1/40.6/46.6/47.8)
 [x] Physics (French) — answer generation, all 7 conditions × 302 FR queries
 [x] Physics (French) — LLM judging, all 7 conditions (pass@1 best = 92.1%, jina_nemo_reranked)
+[x] Finance_fr (French) — DeepSeek OCR complete (2384 pages, ~22h)
+[x] Finance_fr (French) — 5 retrieval rankings (NDCG@10 34.5/53.8/31.2/48.1/47.6)
+[x] Finance_fr (French) — answer generation, all 7 conditions × 320 FR queries
+[x] Finance_fr (French) — LLM judging, all 7 conditions (pass@1 best = 80.9%, jina_nemo_reranked)
 [x] Bug fixes during French runs:
     - answer_generation/model.py: add num_predict=1024 cap (qwen was running unbounded
       enumerations on "list all" queries; caused hang at query 131 of hybrid_nemo)
     - answer_generation/utils.py: normalize non-binary judge labels
       ("Partially Correct") to "Incorrect" instead of raising ValueError
 
-## In progress
-[~] DeepSeek-OCR-2 extraction — finance_fr (French), 229/2384 pages (~9.6%), ETA ~9h
-    - Task id: b4rk2ks28 (running in background)
-
-## Next (once finance_fr OCR completes)
-[ ] Retrievals on finance_fr FR (FR query embeddings + DeepSeek markdown embeddings)
-[ ] Answer generation on finance_fr FR — 7 conditions × 320 FR queries
-[ ] LLM judging on finance_fr FR — 7 conditions
-[ ] Analysis: does the physics FR pattern (text-reranked > hybrid) hold on finance_fr,
-    or does the English pattern (hybrid_deepseek best) return?
+## Next
+[ ] Analysis writeup: cross-subset comparison, emphasize the FR pattern shift
+[ ] Optional: run the deferred cross-lingual experiment on physics
+    (EN queries on FR corpus — partial caches already exist)
 
 ## Deferred (not for Thursday poster)
 [ ] Cross-lingual comparison on physics: FR queries vs EN queries against same FR corpus
@@ -65,32 +63,50 @@ pass@1 averages (CS / Finance / Pharma) — all English:
   hybrid_deepseek:        95.3 / 81.6 / 89.3  avg=88.7%  ← best overall
 closed_book:              91.6 / 56.0 / 68.4  avg=72.0%  (no retrieval baseline)
 
-## Physics French results (new)
-NDCG@10:
-  jina_nemo:              43.7
-  jina_nemo_reranked:     49.1
-  jina_deepseek:          40.6
-  jina_deepseek_reranked: 46.6
-  colembed:               47.8
+## French subset results
 
-pass@1:
-  jina_nemo:              87.1%
-  jina_nemo_reranked:     92.1%  ← best overall on physics FR
-  jina_deepseek:          83.8%
-  jina_deepseek_reranked: 90.1%
-  colembed:               83.1%
-  hybrid_nemo:            86.8%
-  hybrid_deepseek:        89.7%
+NDCG@10 (physics FR / finance_fr):
+  jina_nemo:              43.7 / 34.5
+  jina_nemo_reranked:     49.1 / 53.8
+  jina_deepseek:          40.6 / 31.2
+  jina_deepseek_reranked: 46.6 / 48.1
+  colembed:               47.8 / 47.6
 
-Observations on physics FR vs English:
-- Pattern partially flips: best condition shifts from hybrid_deepseek (EN) to
-  jina_nemo_reranked (physics FR). Reranked text-only beats hybrid by +2.4 pts.
-- Reranker more effective on physics FR: +5.0 pts NeMo, +6.3 pts DeepSeek
-  (vs +3.7 / +5.3 pts on English avg).
-- NeMo-DeepSeek text gap widens slightly on physics FR (+3.3 unreranked) vs
-  English avg (+2.2 unreranked).
-- ColEmbed is the weakest single-stream on physics FR (83.1) — strong text
-  retrieval dominates on scientific French text.
+pass@1 (physics FR / finance_fr):
+  jina_nemo:              87.1 / 73.8
+  jina_nemo_reranked:     92.1 / 80.9   ← best on both French subsets
+  jina_deepseek:          83.8 / 73.4
+  jina_deepseek_reranked: 90.1 / 80.3
+  colembed:               83.1 / 70.3
+  hybrid_nemo:            86.8 / 77.8
+  hybrid_deepseek:        89.7 / 77.2
+
+Closed-book baselines (no retrieval):
+  physics FR: — (not run)
+  finance_fr: 40.6%  →  retrieval adds +33–40 pts
+
+## Key cross-subset observation (major finding)
+
+The best-condition pattern SHIFTS between English and French:
+
+  English (avg over 3 subsets): hybrid_deepseek 88.7  ← best
+  Physics FR:                   jina_nemo_reranked 92.1  ← best
+  Finance_fr:                   jina_nemo_reranked 80.9  ← best
+
+The midway-report conclusion ("DeepSeek's faithful OCR helps most in hybrid
+mode when combined with page images") does NOT generalize to French. On both
+French subsets, reranked text-only dominates hybrid. Mechanisms implicated:
+
+- NeMo-DeepSeek gap collapses on French:
+  text-only reranked gap: +0.6 (EN) → +2.5 (physics FR) → -0.6 (finance_fr)
+  The "hybrid_deepseek > hybrid_nemo" advantage relied on DeepSeek's faithful
+  OCR being a differentiator, which is weaker/absent on French.
+- Visual retrieval relatively weaker on text/table-heavy French documents:
+  colembed on finance_fr = 70.3 (vs 83.7 EN avg, 83.1 physics FR).
+- Reranker is far more impactful on finance_fr than physics FR:
+  NeMo: +19.3 (fin_fr) vs +5.0 (phys_fr); DeepSeek: +16.9 vs +6.3.
+  Finance_fr corpus has many structurally similar boilerplate pages
+  (tables, exhibits) that only a reranker can disambiguate.
 
 ## What did not work
 
