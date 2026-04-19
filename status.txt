@@ -1,48 +1,39 @@
 Last updated: 2026-04-19
 
 ## Done
-[x] ColEmbed visual retrieval — all 3 English subsets (avg NDCG@10: 71.29)
-[x] Jina v4, NeMo, no rerank — all 3 English subsets (avg NDCG@10: 57.97)
-[x] Jina v4, NeMo + zerank-2 — all 3 English subsets (avg NDCG@10: 75.09)
-[x] DeepSeek-OCR-2 extraction — all 3 English subsets
-[x] Jina v4, DeepSeek, no rerank — all 3 English subsets (avg NDCG@10: 55.82)
-[x] Jina v4, DeepSeek + zerank-2 — all 3 English subsets (avg NDCG@10: 71.02)
-[x] answer_generation subproject — generation (qwen3.5:35b) + judging (llama3.1:8b)
-[x] Answer generation — all 7 conditions × 3 English subsets
-[x] LLM judging — all 7 conditions × 3 English subsets
+[x] Retrieval pipelines wired: Jina v4 (NeMo + DeepSeek, with/without zerank-2),
+    ColEmbed (visual), across all target subsets
+[x] DeepSeek-OCR-2 extraction: computer_science, finance_en, pharmaceuticals (EN),
+    physics, finance_fr (FR)
+[x] Answer generation: 7 conditions × 5 subsets (qwen3.5:35b)
+[x] LLM judging: 7 conditions × 5 subsets (llama3.1:8b)
+[x] Closed-book (no-retrieval) ablation: 5 subsets
 [x] Midway report submitted (references/midreport.pdf)
-[x] Closed-book (no retrieval) ablation — all 3 English subsets (avg pass@1 72.0%)
-[x] Closed-book ablation on finance_fr (French): 40.6% pass@1 — baseline established
-[x] Physics (French) — DeepSeek OCR complete (1674 pages, ~4h)
-[x] Physics (French) — 5 retrieval rankings (NDCG@10 43.7/49.1/40.6/46.6/47.8)
-[x] Physics (French) — answer generation, all 7 conditions × 302 FR queries
-[x] Physics (French) — LLM judging, all 7 conditions (pass@1 best = 92.1%, jina_nemo_reranked)
-[x] Finance_fr (French) — DeepSeek OCR complete (2384 pages, ~22h)
-[x] Finance_fr (French) — 5 retrieval rankings (NDCG@10 34.5/53.8/31.2/48.1/47.6)
-[x] Finance_fr (French) — answer generation, all 7 conditions × 320 FR queries
-[x] Finance_fr (French) — LLM judging, all 7 conditions (pass@1 best = 80.9%, jina_nemo_reranked)
 [x] Bug fixes during French runs:
-    - answer_generation/model.py: add num_predict=1024 cap (qwen was running unbounded
-      enumerations on "list all" queries; caused hang at query 131 of hybrid_nemo)
+    - answer_generation/model.py: cap num_predict=1024 (qwen was running
+      unbounded enumerations on "list all" queries)
     - answer_generation/utils.py: normalize non-binary judge labels
       ("Partially Correct") to "Incorrect" instead of raising ValueError
 
-[x] Closed-book ablation on physics FR: 87.75% pass@1 — baseline established
-    (retrieval adds only +4.3 pts; model already knows physics concepts parametrically)
+## English results (from midway report)
+NDCG@10 (CS / finance_en / pharma):
+  jina_nemo:              65.2 / 50.1 / 58.6   avg 58.0
+  jina_nemo_reranked:     83.0 / 72.7 / 69.5   avg 75.1
+  jina_deepseek:          64.0 / 46.9 / 56.5   avg 55.8
+  jina_deepseek_reranked: 82.4 / 65.7 / 65.1   avg 71.0
+  colembed:               78.0 / 68.6 / 67.2   avg 71.3
 
-## Key English results (finalized in midway report)
-pass@1 averages (CS / Finance / Pharma) — all English:
-  jina_nemo:              91.6 / 79.6 / 82.4  avg=84.5%
-  jina_nemo_reranked:     92.6 / 83.5 / 88.5  avg=88.2%
-  jina_deepseek:          90.7 / 73.8 / 82.4  avg=82.3%
-  jina_deepseek_reranked: 95.3 / 79.0 / 88.5  avg=87.6%
-  colembed:               93.0 / 74.8 / 83.2  avg=83.7%
-  hybrid_nemo:            93.0 / 79.9 / 87.9  avg=86.9%
-  hybrid_deepseek:        95.3 / 81.6 / 89.3  avg=88.7%  ← best overall
-closed_book:              91.6 / 56.0 / 68.4  avg=72.0%  (no retrieval baseline)
+pass@1 (CS / finance_en / pharma):
+  jina_nemo:              91.6 / 79.6 / 82.4   avg 84.5
+  jina_nemo_reranked:     92.6 / 83.5 / 88.5   avg 88.2
+  jina_deepseek:          90.7 / 73.8 / 82.4   avg 82.3
+  jina_deepseek_reranked: 95.3 / 79.0 / 88.5   avg 87.6
+  colembed:               93.0 / 74.8 / 83.2   avg 83.7
+  hybrid_nemo:            93.0 / 79.9 / 87.9   avg 86.9
+  hybrid_deepseek:        95.3 / 81.6 / 89.3   avg 88.7  ← best
+  closed_book:            91.6 / 56.0 / 68.4   avg 72.0
 
-## French subset results
-
+## French results
 NDCG@10 (physics FR / finance_fr):
   jina_nemo:              43.7 / 34.5
   jina_nemo_reranked:     49.1 / 53.8
@@ -58,78 +49,4 @@ pass@1 (physics FR / finance_fr):
   colembed:               83.1 / 70.3
   hybrid_nemo:            86.8 / 77.8
   hybrid_deepseek:        89.7 / 77.2
-
-Closed-book baselines (no retrieval):
-  physics FR:  87.8%  →  retrieval adds only +4.3 pts (best: jina_nemo_reranked 92.1)
-  finance_fr:  40.6%  →  retrieval adds +33–40 pts (best: jina_nemo_reranked 80.9)
-
-## Key cross-subset observation (major finding)
-
-The best-condition pattern SHIFTS between English and French:
-
-  English (avg over 3 subsets): hybrid_deepseek 88.7  ← best
-  Physics FR:                   jina_nemo_reranked 92.1  ← best
-  Finance_fr:                   jina_nemo_reranked 80.9  ← best
-
-The midway-report conclusion ("DeepSeek's faithful OCR helps most in hybrid
-mode when combined with page images") does NOT generalize to French. On both
-French subsets, reranked text-only dominates hybrid. Mechanisms implicated:
-
-- The hybrid_deepseek > hybrid_nemo advantage is corpus-dependent:
-    EN avg:      +1.8 pts  (DeepSeek better)
-    Physics FR:  +2.9 pts  (DeepSeek better — pattern holds but reranked
-                 text-only still wins overall)
-    Finance_fr:  -0.6 pts  (DeepSeek WORSE — the hybrid advantage flips)
-  DeepSeek's faithful-OCR edge becomes invisible or negative on French
-  corporate filings, likely because NeMo's extraction of French tables
-  and exhibits is strong enough to close the gap.
-- Visual retrieval relatively weaker on text/table-heavy French documents:
-  colembed on finance_fr = 70.3 (vs 83.7 EN avg, 83.1 physics FR).
-  Finance_fr content is mostly tables, exhibits, numbers — text retrieval
-  has more to work with than visual signals.
-- Reranker is far more impactful on finance_fr than physics FR:
-  NeMo: +19.3 (fin_fr) vs +5.0 (phys_fr); DeepSeek: +16.9 vs +6.3.
-  Finance_fr corpus has many structurally similar boilerplate pages
-  (tables, exhibits) that only a reranker can disambiguate.
-- Retrieval value varies wildly by subset, proportional to how document-specific
-  the queries are:
-    computer_science EN: +3.7 pts  (closed 91.6 → best 95.3)
-    physics FR:          +4.3 pts  (closed 87.8 → best 92.1)
-    pharmaceuticals EN:  +20.1 pts (closed 68.4 → best 88.5)
-    finance_en EN:       +27.5 pts (closed 56.0 → best 83.5)
-    finance_fr FR:       +40.3 pts (closed 40.6 → best 80.9)
-  Physics and CS are dominated by parametric knowledge (conceptual/textbook
-  queries the model knows). Finance subsets test document-specific facts
-  (exact $ amounts, subsidiary names) the model can't recall — retrieval
-  is where the win lives.
-
-## What did not work
-
-- **Multimodal OCR prompt** — changed DeepSeek prompt to "Extract all text. For each figure or
-  chart, describe its content in detail as part of the text flow." Did not improve NDCG@10;
-  reverted to the default `<|grounding|>Convert the document to markdown.` prompt.
-- **DeepSeek markdown cleaner** — stripped image placeholders (![](images/*.jpg)) and HTML table
-  tags before embedding. No measurable impact on NDCG@10; removed.
-- **DeepSeek-OCR-2 as text extractor** — overall NDCG@10 avg 55.82 (no rerank) and 71.02
-  (zerank-2) vs NeMo 57.97 / 75.09. Gap widens after reranking (−2.15 → −4.07 pts).
-  OCR output is noisier and longer than NeMo; does not help retrieval quality on these subsets.
-
-## Mitigating DeepSeek-OCR-2's blindness to figures/charts
-
-DeepSeek outputs image placeholders for visual content, so figures are invisible to the text stream.
-The generator can compensate at answer-generation time:
-
-**Primary (already in pipeline design)**
-- Send the top-5 retrieved page *images* (from ColEmbed) alongside the top-5 markdown texts to the
-  generator VLM. The model sees the actual figures directly — no OCR needed for visual content.
-  This is the ViDoRe v3 hybrid protocol and is already planned.
-
-**Alternatives if the hybrid context is insufficient**
-- Figure captioning: DeepSeek already extracts figure images to disk (images/0.jpg, etc.) alongside
-  the markdown. Run a captioning model (BLIP-2, LLaVA, or the generator VLM itself) on those
-  saved images and replace the placeholders with the generated captions before embedding. Targeted
-  and avoids re-running OCR.
-- Multimodal OCR prompt: ask DeepSeek (or another model) to describe figures inline as part of the
-  markdown. We tried this (prompt: "describe each figure in detail as part of the text flow") but
-  reverted because it did not improve NDCG@10. May still help answer accuracy — worth revisiting
-  after end-to-end QA is implemented.
+  closed_book:            87.8 / 40.6
