@@ -27,3 +27,10 @@ timestamp,condition,subset,lang,pass_at_1,num_correct,num_total
 2026-04-17T15:19:44.661855,jina_nemo_reranked,physics,french,0.9205,278,302
 2026-04-17T15:24:23.898774,jina_deepseek,physics,french,0.8377,253,302
 2026-04-17T15:32:09.958675,jina_deepseek_reranked,physics,french,0.9007,272,302
+2026-04-18T21:40:01.243159,jina_nemo,finance_fr,french,0.7375,236,320
+2026-04-18T21:49:00.935203,jina_nemo_reranked,finance_fr,french,0.8094,259,320
+2026-04-18T21:58:02.300244,jina_deepseek,finance_fr,french,0.7344,235,320
+2026-04-18T22:06:59.832468,jina_deepseek_reranked,finance_fr,french,0.8031,257,320
+2026-04-18T22:15:50.503301,colembed,finance_fr,french,0.7031,225,320
+2026-04-18T22:24:40.933012,hybrid_nemo,finance_fr,french,0.7781,249,320
+2026-04-18T22:33:29.134349,hybrid_deepseek,finance_fr,french,0.7719,247,320

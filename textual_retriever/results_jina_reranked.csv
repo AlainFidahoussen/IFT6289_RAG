@@ -3,3 +3,4 @@ timestamp,model,subset,lang,ndcg_at_10
 2026-03-26T21:23:30.994307,Jina-v4+zerank-2,finance_en,english,72.73
 2026-03-26T21:51:26.326288,Jina-v4+zerank-2,pharmaceuticals,english,69.53
 2026-04-16T22:44:56.180794,Jina-v4+zerank-2,physics,french,49.07
+2026-04-18T12:42:24.701859,Jina-v4+zerank-2,finance_fr,french,53.78
