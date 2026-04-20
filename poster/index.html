@@ -1,0 +1,524 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>IFT6289 – NeMo vs DeepSeek-OCR-2 in Hybrid RAG</title>
+<style>
+  /* ---------- page / print ---------- */
+  @page { size: 1189mm 841mm; margin: 0; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1189mm; height: 841mm; }
+  body {
+    font-family: "Source Serif Pro", "Charter", "Georgia", serif;
+    font-size: 14pt;
+    line-height: 1.35;
+    color: #1d1d1d;
+    background: #fafaf7;
+    padding: 20mm 22mm;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    gap: 12mm;
+  }
+  h1, h2, h3, h4, .mono {
+    font-family: "Inter", "Helvetica Neue", "Arial", sans-serif;
+    letter-spacing: -0.01em;
+  }
+  .mono, code, pre {
+    font-family: "JetBrains Mono", "Menlo", "Consolas", monospace;
+  }
+
+  /* ---------- header ---------- */
+  header {
+    display: grid;
+    grid-template-columns: 3fr 1fr;
+    gap: 10mm;
+    align-items: end;
+    border-bottom: 2pt solid #1d1d1d;
+    padding-bottom: 8mm;
+  }
+  header h1 {
+    font-size: 46pt;
+    line-height: 1.05;
+    font-weight: 700;
+    color: #1b3a6b;
+  }
+  header h1 em {
+    color: #c97b2c;
+    font-style: normal;
+  }
+  header .authors { font-size: 19pt; margin-top: 4mm; }
+  header .authors em { color: #666; font-style: normal; font-size: 15pt; }
+  header .meta {
+    text-align: right;
+    font-size: 16pt;
+    color: #555;
+  }
+  header .meta strong { color: #1b3a6b; display: block; font-size: 22pt; }
+
+  /* ---------- 4-column grid ---------- */
+  main {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12mm;
+  }
+  section { display: flex; flex-direction: column; gap: 6mm; }
+  section > h2 {
+    font-size: 24pt;
+    color: #fff;
+    background: #1b3a6b;
+    padding: 3mm 5mm;
+    border-radius: 2mm;
+    font-weight: 600;
+  }
+  section h3 {
+    font-size: 16pt;
+    color: #1b3a6b;
+    margin-top: 2mm;
+    border-left: 3pt solid #c97b2c;
+    padding-left: 4mm;
+    font-weight: 600;
+  }
+  section h4 {
+    font-size: 13pt;
+    color: #1d1d1d;
+    margin-top: 1mm;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  p { margin-bottom: 2mm; }
+  ul, ol { margin-left: 5mm; }
+  li { margin-bottom: 1.5mm; }
+
+  /* ---------- callouts / cards ---------- */
+  .callout {
+    background: #fdf5e7;
+    border-left: 4pt solid #c97b2c;
+    padding: 4mm 5mm;
+    border-radius: 0 2mm 2mm 0;
+    font-size: 13pt;
+  }
+  .callout strong { color: #c97b2c; }
+
+  .parser-card {
+    background: #fff;
+    border: 1.5pt solid #1b3a6b;
+    border-radius: 3mm;
+    padding: 4mm 5mm;
+    font-size: 12pt;
+    line-height: 1.3;
+  }
+  .parser-card h4 {
+    color: #1b3a6b;
+    font-size: 15pt;
+    text-transform: none;
+    letter-spacing: 0;
+    margin-bottom: 2mm;
+    border-bottom: 1pt solid #e9ecf2;
+    padding-bottom: 1.5mm;
+  }
+  .parser-card dl {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    column-gap: 3mm;
+    row-gap: 1.5mm;
+  }
+  .parser-card dt {
+    font-family: "Inter", sans-serif;
+    font-weight: 600;
+    color: #c97b2c;
+    font-size: 10pt;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding-top: 0.5mm;
+  }
+  .parser-card dd { font-size: 12pt; }
+
+  /* ---------- source page image ---------- */
+  figure.source-page {
+    margin: 0;
+    border: 1pt solid #bbb;
+    border-radius: 2mm;
+    overflow: hidden;
+    background: #fff;
+  }
+  figure.source-page img { display: block; width: 100%; height: auto; }
+  figure.source-page figcaption {
+    font-size: 10pt;
+    color: #666;
+    padding: 1.5mm 3mm;
+    background: #f4f5f1;
+    font-family: "Inter", sans-serif;
+    border-top: 1pt solid #ccc;
+  }
+
+  /* ---------- output comparison: source | (nemo / deepseek stacked) ---------- */
+  .output-compare {
+    display: grid;
+    grid-template-columns: 1.15fr 1fr;
+    gap: 4mm;
+    align-items: start;
+    font-size: 9pt;
+  }
+  .output-compare > div { display: flex; flex-direction: column; gap: 1.5mm; }
+  .output-compare .stacked {
+    display: flex;
+    flex-direction: column;
+    gap: 3mm;
+  }
+  .output-compare figure.source-thumb {
+    margin: 0;
+    border: 1pt solid #bbb;
+    border-radius: 2mm;
+    overflow: hidden;
+    background: #fff;
+  }
+  .output-compare figure.source-thumb img { display: block; width: 100%; height: auto; }
+  .output-compare figure.source-thumb figcaption {
+    font-size: 9pt;
+    color: #666;
+    padding: 1mm 2.5mm;
+    background: #f4f5f1;
+    font-family: "Inter", sans-serif;
+    border-top: 1pt solid #ccc;
+  }
+  .output-compare pre {
+    background: #f0efe8;
+    border-left: 3pt solid #888;
+    padding: 2.5mm 3mm;
+    border-radius: 0 1.5mm 1.5mm 0;
+    white-space: pre-wrap;
+    line-height: 1.25;
+    overflow: hidden;
+    margin: 0;
+  }
+  .output-compare .nemo { border-left-color: #1b3a6b; }
+  .output-compare .deepseek { border-left-color: #c97b2c; }
+  .output-compare .label {
+    font-family: "Inter", sans-serif;
+    font-size: 10.5pt;
+    font-weight: 600;
+  }
+  .output-compare .label.nemo { color: #1b3a6b; }
+  .output-compare .label.deepseek { color: #c97b2c; }
+
+  /* ---------- tables ---------- */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12pt;
+    font-family: "JetBrains Mono", "Menlo", "Consolas", monospace;
+  }
+  th, td {
+    padding: 1.6mm 2mm;
+    text-align: right;
+  }
+  th:first-child, td:first-child { text-align: left; }
+  thead th {
+    background: #e9ecf2;
+    color: #1b3a6b;
+    border-bottom: 1.5pt solid #1b3a6b;
+    font-weight: 600;
+  }
+  tbody tr:nth-child(even) { background: #f4f5f1; }
+  tbody td.win   { background: #e6f2e6; color: #166534; font-weight: 700; }
+  tbody td.lose  { background: #fbe6e6; color: #991b1b; font-weight: 700; }
+  tbody td.best  { background: #fdf5e7; color: #c97b2c; font-weight: 700; }
+  table caption {
+    caption-side: top;
+    font-size: 13pt;
+    font-weight: 600;
+    text-align: left;
+    padding-bottom: 2mm;
+    color: #1b3a6b;
+    font-family: "Inter", sans-serif;
+  }
+
+  /* ---------- pipeline SVG container ---------- */
+  .pipeline { width: 100%; height: auto; }
+
+  /* ---------- footer ---------- */
+  footer {
+    grid-column: 1 / -1;
+    font-size: 10pt;
+    color: #666;
+    margin-top: 4mm;
+    padding-top: 3mm;
+    border-top: 1pt solid #ccc;
+    display: flex;
+    justify-content: space-between;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Does parser choice matter in hybrid vision–text RAG?<br>
+        A controlled comparison of <em>NeMo Retriever</em> vs <em>DeepSeek-OCR-2</em></h1>
+    <div class="authors">
+      Alain Fidahoussen &nbsp;·&nbsp; Munyeong Kim &nbsp;·&nbsp; Aftab Gazali
+      <br><em>Université de Montréal · MILA</em>
+    </div>
+  </div>
+  <div class="meta">
+    <strong>IFT6289 · Final Poster</strong>
+    Benchmark: ViDoRe v3<br>
+    5 subsets · 2132 queries · 7 conditions<br>
+    qwen3.5:35b generator · llama3.1:8b judge<br>
+    Code + results: this repo
+  </div>
+</header>
+
+<main>
+
+<!-- ============================================= -->
+<!-- COLUMN 1: MOTIVATION + THE TWO PARSERS       -->
+<!-- ============================================= -->
+<section>
+  <h2>Motivation</h2>
+
+  <p>Hybrid vision–text RAG over visually rich PDFs has two retrieval streams — page images and parsed markdown — both feeding a multimodal generator. The <strong>parser</strong> that produces the markdown is usually treated as interchangeable preprocessing.</p>
+
+  <p>It is not. Parsers differ by design goal, and that design goal propagates all the way to end-to-end answer accuracy.</p>
+
+  <h3>Research question</h3>
+  <p class="callout">
+    Does swapping the parser — <strong>NeMo Retriever extraction</strong> vs <strong>DeepSeek-OCR-2</strong> — change <em>end-to-end</em> answer accuracy in the hybrid setting, and is the direction of the change the one that retrieval metrics would predict?
+  </p>
+
+  <h3>Controlled comparison</h3>
+  <p><span class="mono"><strong>Variable:</strong></span> parser choice.<br>
+     <span class="mono"><strong>Fixed:</strong></span> Jina v4 text retriever · ColEmbed visual retriever · zerank-2 reranker · qwen3.5:35b generator · llama3.1:8b judge · English generation prompt · top-k = 5 per stream · MAX_CHARS_PER_DOC = 4000.</p>
+
+  <h2>The two parsers</h2>
+
+  <div class="parser-card">
+    <h4>NeMo Retriever extraction (nv-ingest)</h4>
+    <dl>
+      <dt>Backbone</dt><dd>Nemotron-Parse VLM — layout-aware extraction with bounding-box grounding</dd>
+      <dt>Design goal</dt><dd>Fast retrieval preprocessing at scale (NVIDIA)</dd>
+      <dt>Output</dt><dd>Compact markdown; tables as markdown tables; figures dropped (no placeholder); text inside diagrams flattened via inline OCR (often garbled for equations)</dd>
+      <dt>Used in</dt><dd>ViDoRe v3 benchmark as the default text extractor</dd>
+    </dl>
+  </div>
+
+  <div class="parser-card">
+    <h4>DeepSeek-OCR-2</h4>
+    <dl>
+      <dt>Backbone</dt><dd>DeepEncoder V2 with dynamic visual token reordering + vision-token compression</dd>
+      <dt>Design goal</dt><dd>Faithful, compressed text-image reconstruction ("contexts optical compression")</dd>
+      <dt>Output</dt><dd>Verbose, structure-preserving markdown; LaTeX-rendered equations; figures inserted as <code>![](images/N.jpg)</code> placeholders with crops saved to disk</dd>
+      <dt>Trained on</dt><dd>Large-scale document OCR with emphasis on layout fidelity and long-context retention</dd>
+    </dl>
+  </div>
+
+  <figure class="source-page" style="margin-top:2mm;">
+    <img src="assets/deepseek_ocr2_fig3.jpg" alt="DeepSeek-OCR 2 architecture: SAM tokenizer → Conv compressor → Qwen2 500M LM as vision encoder (DeepEncoder V2) → DeepSeek-3B MoE decoder">
+    <figcaption>DeepSeek-OCR 2 architecture (Wei et al., 2026 — Fig. 3). The SAM tokenizer reduces visual tokens 16×; DeepEncoder V2 replaces the CLIP component with an LM (Qwen2 500M) and adds causal flow queries.</figcaption>
+  </figure>
+</section>
+
+<!-- ============================================= -->
+<!-- COLUMN 2: OUTPUT COMPARISON + METHOD         -->
+<!-- ============================================= -->
+<section>
+  <h2>Output on the same page</h2>
+  <div class="output-compare">
+    <figure class="source-thumb">
+      <img src="assets/loreal_note5_table.jpg" alt="Source PDF page showing Note 5.1 'Effectifs' — a 4-column table of L'Oréal employee counts by region for 2023, 2022, 2021">
+    </figure>
+    <div class="stacked">
+      <div>
+        <div class="label nemo">NeMo</div>
+<pre class="nemo">| Note 5. Effectifs, frais ... |  |  |  |
+| 5.1. Effectifs |  |  | 31.12.2021 |
+|  | 31.12.2023 | 31.12.2022 |  |
+| Europe | 36 839 | 34 856 | 34 503 |
+| Amérique du Nord | 15 931 | 14 788 | 13 806 |
+| Asie du Nord | 23 783 | 21 387 | 20 900 |
+| SAPMENA SSA | 9 339 | 7797 | 7609 |
+| Amérique Latine | 8 713 | 8 541 | 8 594 |
+| GROUPE (1) | 94 605 | 87 369 | 85 412 |</pre>
+      </div>
+      <div>
+        <div class="label deepseek">DeepSeek-OCR-2</div>
+<pre class="deepseek">## Note 5. Effectifs, frais de
+personnel et avantages au personnel
+
+## 5.1. Effectifs
+
+&lt;table&gt;
+  &lt;tr&gt;&lt;td&gt;&lt;/td&gt;&lt;td&gt;31.12.2023&lt;/td&gt;
+      &lt;td&gt;31.12.2022&lt;/td&gt;
+      &lt;td&gt;31.12.2021&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;Europe&lt;/td&gt;
+      &lt;td&gt;36 839&lt;/td&gt;
+      &lt;td&gt;34 856&lt;/td&gt;
+      &lt;td&gt;34 503&lt;/td&gt;&lt;/tr&gt;
+  ...
+  &lt;tr&gt;&lt;td&gt;GROUPE \({}^{(1)}\)&lt;/td&gt;
+      &lt;td&gt;94 605&lt;/td&gt;
+      &lt;td&gt;87 369&lt;/td&gt;
+      &lt;td&gt;85 412&lt;/td&gt;&lt;/tr&gt;
+&lt;/table&gt;</pre>
+      </div>
+    </div>
+  </div>
+
+
+  <h2>Method</h2>
+
+  <svg class="pipeline" viewBox="0 0 420 340" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+        <path d="M 0 0 L 10 5 L 0 10 z" fill="#1b3a6b"/>
+      </marker>
+      <style>
+        .box { fill:#fff; stroke:#1b3a6b; stroke-width:1.5; rx:5; ry:5;}
+        .box-accent { fill:#fdf5e7; stroke:#c97b2c; stroke-width:1.5;}
+        .label { font-family:Inter,sans-serif; font-size:11px; fill:#1d1d1d; text-anchor:middle;}
+        .label-sm { font-family:Inter,sans-serif; font-size:9px; fill:#555; text-anchor:middle;}
+        .line { stroke:#1b3a6b; stroke-width:1.5; fill:none;}
+      </style>
+    </defs>
+
+    <rect x="155" y="10" width="110" height="28" class="box"/>
+    <text x="210" y="28" class="label">PDF page image</text>
+
+    <path d="M 180 38 L 95 70" class="line" marker-end="url(#arrow)"/>
+    <path d="M 240 38 L 325 70" class="line" marker-end="url(#arrow)"/>
+
+    <rect x="20" y="70" width="150" height="34" class="box-accent"/>
+    <text x="95" y="88" class="label">Parser (variable)</text>
+    <text x="95" y="100" class="label-sm">NeMo  ·  DeepSeek-OCR-2</text>
+
+    <rect x="20" y="120" width="150" height="26" class="box"/>
+    <text x="95" y="137" class="label">Jina v4 (embed)</text>
+
+    <rect x="20" y="160" width="150" height="26" class="box"/>
+    <text x="95" y="177" class="label">zerank-2 rerank</text>
+
+    <rect x="20" y="200" width="150" height="26" class="box"/>
+    <text x="95" y="217" class="label">Top-5 text docs</text>
+
+    <rect x="250" y="70" width="150" height="26" class="box"/>
+    <text x="325" y="87" class="label">Page images</text>
+
+    <rect x="250" y="160" width="150" height="26" class="box"/>
+    <text x="325" y="177" class="label">ColEmbed (embed)</text>
+
+    <rect x="250" y="200" width="150" height="26" class="box"/>
+    <text x="325" y="217" class="label">Top-5 image pages</text>
+
+    <path d="M 95 104 L 95 120" class="line" marker-end="url(#arrow)"/>
+    <path d="M 95 146 L 95 160" class="line" marker-end="url(#arrow)"/>
+    <path d="M 95 186 L 95 200" class="line" marker-end="url(#arrow)"/>
+    <path d="M 325 96 L 325 160" class="line" marker-end="url(#arrow)"/>
+    <path d="M 325 186 L 325 200" class="line" marker-end="url(#arrow)"/>
+
+    <path d="M 130 226 L 180 250" class="line" marker-end="url(#arrow)"/>
+    <path d="M 290 226 L 240 250" class="line" marker-end="url(#arrow)"/>
+
+    <rect x="135" y="253" width="150" height="30" class="box-accent"/>
+    <text x="210" y="269" class="label">qwen3.5:35b</text>
+    <text x="210" y="281" class="label-sm">multimodal generator</text>
+
+    <path d="M 210 283 L 210 300" class="line" marker-end="url(#arrow)"/>
+
+    <rect x="135" y="302" width="150" height="26" class="box"/>
+    <text x="210" y="319" class="label">llama3.1:8b judge</text>
+  </svg>
+
+</section>
+
+<!-- ============================================= -->
+<!-- COLUMN 3: RESULTS                             -->
+<!-- ============================================= -->
+<section>
+  <h2>Results</h2>
+
+  <h3>Text retrieval — NeMo consistently wins</h3>
+
+  <table>
+    <caption>NDCG@10 — text retrieval (Jina v4 + zerank-2)</caption>
+    <thead><tr><th>Subset</th><th>NeMo</th><th>DeepSeek</th></tr></thead>
+    <tbody>
+      <tr><td>computer_science (EN)</td><td class="win">83.0</td><td>82.4</td></tr>
+      <tr><td>finance_en (EN)</td><td class="win">72.7</td><td>65.7</td></tr>
+      <tr><td>pharmaceuticals (EN)</td><td class="win">69.5</td><td>65.1</td></tr>
+      <tr><td>physics (FR)</td><td class="win">49.1</td><td>46.6</td></tr>
+      <tr><td>finance_fr (FR)</td><td class="win">53.8</td><td>48.1</td></tr>
+      <tr><td><strong>avg</strong></td><td class="win"><strong>65.6</strong></td><td><strong>61.6</strong></td></tr>
+    </tbody>
+  </table>
+
+  <p style="font-size:11.5pt;">DeepSeek's more verbose output dilutes the embedding signal — a known tension from the midway report.</p>
+
+  <h3>Hybrid end-to-end — DeepSeek flips the direction</h3>
+
+  <table>
+    <caption>pass@1 (%) — hybrid (image stream + reranked text stream)</caption>
+    <thead><tr><th>Subset</th><th>NeMo</th><th>DeepSeek</th></tr></thead>
+    <tbody>
+      <tr><td>computer_science (EN)</td><td>93.0</td><td class="win">95.3</td></tr>
+      <tr><td>finance_en (EN)</td><td>79.9</td><td class="win">81.6</td></tr>
+      <tr><td>pharmaceuticals (EN)</td><td>87.9</td><td class="win">89.3</td></tr>
+      <tr><td>physics (FR)</td><td>86.8</td><td class="win">89.7</td></tr>
+      <tr><td>finance_fr (FR)</td><td class="win">77.8</td><td>77.2</td></tr>
+      <tr><td><strong>avg</strong></td><td>85.1</td><td class="win"><strong>86.6</strong></td></tr>
+    </tbody>
+  </table>
+
+  <p style="font-size:11.5pt;"><strong>DeepSeek-OCR-2 wins 4 / 5 subsets in hybrid generation, averaging +1.5 pts.</strong> The direction is opposite to what NDCG@10 predicts: the parser that <em>loses</em> retrieval <em>wins</em> end-to-end.</p>
+
+  <div class="callout">
+    <strong>Headline</strong>: retrieval-optimal preprocessing is not the same as generation-optimal preprocessing. Optimizing a parser for dense-embedding cosine similarity penalizes the faithfulness that helps a VLM generator use the text.
+  </div>
+</section>
+
+<!-- ============================================= -->
+<!-- COLUMN 4: WHY + CONCLUSION                   -->
+<!-- ============================================= -->
+<section>
+  <h2>Why the reversal?</h2>
+
+  <h3>① Compactness wins retrieval</h3>
+  <p>Jina v4 + zerank-2 score pages by a single dense cosine (then cross-encoder) similarity. NeMo's compact markdown produces tighter embeddings whose centroid stays near the query's topical anchor. DeepSeek's verbose, faithful markdown spreads the document's meaning across more tokens → the embedding drifts → the right page ranks lower.</p>
+
+  <h3>② Faithfulness wins generation</h3>
+  <p>Once a page is retrieved, the generator consumes the raw markdown alongside the page image. DeepSeek's preservation of layout, LaTeX, tables and structure gives the generator a richer textual anchor that complements the image. NeMo's flattened text sometimes drops the token the answer needs.</p>
+
+  <h3>③ The finance_fr exception</h3>
+  <div class="callout">
+    On <strong>finance_fr</strong> (French luxury-sector annual reports — Hermès, LVMH, L'Oréal, Kering, Dior) DeepSeek slightly loses (−0.6). Two reasons:
+    <ul style="margin-top:2mm;">
+      <li>Queries are numeric / tabular facts ("revenue of LVMH in 2023") that NeMo's table extraction already captures in full — DeepSeek's extra faithfulness has nothing to add.</li>
+      <li>ColEmbed's visual retrieval is weak on this corpus (NDCG@10 47.6, vs 71.3 English avg). When the visual stream is noisy, the hybrid advantage from parser quality disappears.</li>
+    </ul>
+  </div>
+
+  <h2>Conclusions</h2>
+  <ul>
+    <li><strong>Parser choice matters</strong> — even holding every other component fixed, the end-to-end delta is systematic across 4 of 5 subsets and averages +1.5 pts.</li>
+    <li><strong>Retrieval metrics are a misleading proxy</strong> for end-to-end parser selection. NeMo wins NDCG@10 by +4.1 pts on average and still loses hybrid pass@1 by −1.5 pts.</li>
+    <li><strong>The benefit is corpus-dependent</strong>: it needs a strong enough visual retriever to pair with the text. On corpora where visual retrieval is poor, the parser's downstream advantage collapses.</li>
+  </ul>
+
+  <h2>Future work</h2>
+  <ul>
+    <li>Per-query-type analysis: where does DeepSeek's faithfulness help — tables? equations? figure captions?</li>
+    <li>Figure captioning to close DeepSeek's placeholder-for-figures blind spot in the text stream.</li>
+    <li>Statistical significance testing with paired bootstrap; the +1.5 pts averaged across 5 subsets is consistent in direction but within per-subset noise.</li>
+    <li>Extension to more parsers (Marker, Docling, GOT-OCR) under the same controlled protocol.</li>
+  </ul>
+</section>
+
+<footer>
+  <span>Generator: qwen3.5:35b · Judge: llama3.1:8b · Retrievers: Jina v4, ColEmbed (Nemotron), zerank-2 · Parsers: NeMo Retriever extraction (nv-ingest), DeepSeek-OCR-2 · Benchmark: ViDoRe v3</span>
+  <span>Full 7-condition results + code in the repository</span>
+</footer>
+
+</main>
+</body>
+</html>
