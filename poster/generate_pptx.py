@@ -3,9 +3,12 @@
 
 from __future__ import annotations
 
+from lxml import etree
 from pptx import Presentation
 from pptx.dml.color import RGBColor
+from pptx.enum.shapes import MSO_CONNECTOR_TYPE
 from pptx.enum.text import PP_ALIGN
+from pptx.oxml.ns import qn
 from pptx.util import Mm, Pt
 
 # ── Colors ────────────────────────────────────────────────────────────────────
@@ -113,6 +116,83 @@ def callout_box(x: int, y: int, text: str, size=12) -> int:
     p = tf.paragraphs[0]
     add_run(p, text, size)
     return y + est + Mm(4)
+
+
+def draw_pipeline(px: int, py: int, pw: int) -> int:
+    """Recreate the hybrid RAG pipeline SVG as PowerPoint shapes. Returns y after diagram."""
+    ph = int(pw * 340 / 420)
+    sx = pw / 420.0
+    sy = ph / 340.0
+
+    def bx(svgx: float) -> int: return px + int(svgx * sx)
+    def by_(svgy: float) -> int: return py + int(svgy * sy)
+    def bw(svgw: float) -> int: return max(int(svgw * sx), Mm(1))
+    def bh(svgh: float) -> int: return max(int(svgh * sy), Mm(5))
+
+    def draw_box(svgx, svgy, svgw, svgh, label, sublabel=None, accent=False):
+        shape = slide.shapes.add_shape(1, bx(svgx), by_(svgy), bw(svgw), bh(svgh))
+        shape.fill.solid()
+        shape.fill.fore_color.rgb = CALL_BG if accent else WHITE
+        shape.line.color.rgb = ORANGE if accent else BLUE
+        shape.line.width = Pt(1.2)
+        tf = shape.text_frame
+        tf.word_wrap = True
+        p = tf.paragraphs[0]
+        p.alignment = PP_ALIGN.CENTER
+        add_run(p, label, 9, bold=True, color=DARK)
+        if sublabel:
+            p2 = tf.add_paragraph()
+            p2.alignment = PP_ALIGN.CENTER
+            add_run(p2, sublabel, 7, color=GREY)
+
+    def draw_arrow(x1, y1, x2, y2):
+        conn = slide.shapes.add_connector(MSO_CONNECTOR_TYPE.STRAIGHT, bx(x1), by_(y1), bx(x2), by_(y2))
+        sp_pr = conn._element.find(qn('p:spPr'))
+        ln_el = sp_pr.find(qn('a:ln'))
+        if ln_el is not None:
+            sp_pr.remove(ln_el)
+        ln_el = etree.SubElement(sp_pr, qn('a:ln'))
+        ln_el.set('w', str(int(Pt(1.2))))
+        solid = etree.SubElement(ln_el, qn('a:solidFill'))
+        etree.SubElement(solid, qn('a:srgbClr')).set('val', '1b3a6b')
+        etree.SubElement(ln_el, qn('a:headEnd')).set('type', 'none')
+        tail = etree.SubElement(ln_el, qn('a:tailEnd'))
+        tail.set('type', 'arrow')
+        tail.set('w', 'med')
+        tail.set('len', 'med')
+
+    # Boxes (SVG coordinates)
+    draw_box(155, 10, 110, 28, "PDF page image")
+
+    draw_box(20,  70,  150, 34, "DeepSeek-OCR-2", "text extraction (fixed)", accent=True)
+    draw_box(20,  120, 150, 26, "Jina v4",        "text encoder")
+    draw_box(20,  160, 150, 26, "zerank-2",        "cross-encoder reranker")
+    draw_box(20,  200, 150, 26, "Top-5 text docs")
+
+    draw_box(250, 70,  150, 26, "Page images")
+    draw_box(250, 160, 150, 26, "ColEmbed",        "image encoder")
+    draw_box(250, 200, 150, 26, "Top-5 image pages")
+
+    draw_box(135, 253, 150, 30, "qwen3.5:35b",    "multimodal generator", accent=True)
+    draw_box(135, 302, 150, 26, "llama3.1:8b",    "judge", accent=True)
+
+    # Arrows (SVG path endpoints)
+    draw_arrow(180, 38,  95,  70)   # PDF → DeepSeek
+    draw_arrow(240, 38,  325, 70)   # PDF → images
+
+    draw_arrow(95,  104, 95,  120)  # DeepSeek → Jina
+    draw_arrow(95,  146, 95,  160)  # Jina → zerank
+    draw_arrow(95,  186, 95,  200)  # zerank → top-5 text
+
+    draw_arrow(325, 96,  325, 160)  # images → ColEmbed
+    draw_arrow(325, 186, 325, 200)  # ColEmbed → top-5 image
+
+    draw_arrow(130, 226, 180, 250)  # top-5 text → qwen
+    draw_arrow(290, 226, 240, 250)  # top-5 image → qwen
+
+    draw_arrow(210, 283, 210, 302)  # qwen → judge
+
+    return py + ph + Mm(4)
 
 
 def table(x: int, y: int, data: list[list[str]], col_fracs: list[float],
@@ -231,11 +311,7 @@ y = callout_box(x, y, (
 ))
 
 y = h3(x, y, "Pipeline")
-y = bullets(x, y, [
-    ("Text stream", "PDF → DeepSeek-OCR-2 → markdown → Jina v4 (dense vectors) → zerank-2 (reranker) → Top-5 text pages"),
-    ("Image stream", "PDF page images → ColEmbed (image encoder) → Top-5 image pages"),
-    ("Fusion + eval", "Top-5 text + Top-5 image → qwen3.5:35b (generator) → Answer → llama3.1:8b (judge) → pass@1"),
-])
+y = draw_pipeline(x, y, COL_W)
 
 y = h3(x, y, "Model choices")
 y = bullets(x, y, [
