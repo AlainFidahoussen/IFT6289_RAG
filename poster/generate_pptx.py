@@ -186,7 +186,10 @@ y = body(x, y, (
     "Late interaction: encodes each page into one embedding per image patch, each query into one per token. "
     "Scoring uses MaxSim: for every query token, find its closest page patch; sum those best-match scores. "
     'A query "what is the Q3 revenue?" can match "Q3" to the table column and "revenue" to the row.'
-), h_est=Mm(30))
+), h_est=Mm(22))
+
+pic = slide.shapes.add_picture("poster/assets/colpali_architecture.png", x, y, width=COL_W)
+y += pic.height + Mm(3)
 
 y = h3(x, y, "ColEmbed (Xu et al., 2025) — our visual stream")
 y = body(x, y, (
@@ -236,7 +239,10 @@ y = h3(x, y, "DeepSeek-OCR-2")
 y = body(x, y, (
     "Instead of consuming visual tokens top-left to bottom-right, learnable causal flow queries "
     "re-order them to a more logical reading path — preserving document structure in the output markdown."
-), h_est=Mm(20))
+), h_est=Mm(16))
+
+pic = slide.shapes.add_picture("poster/assets/deepseek_ocr2_fig3.jpg", x, y, width=COL_W)
+y += pic.height + Mm(3)
 
 y = h3(x, y, "Experimental conditions")
 y = bullets(x, y, [
