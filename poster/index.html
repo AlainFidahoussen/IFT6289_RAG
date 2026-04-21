@@ -272,13 +272,6 @@
       <br><em>Université de Montréal · MILA</em>
     </div>
   </div>
-  <div class="meta">
-    <strong>IFT6289 · Final Poster</strong>
-    Benchmark: ViDoRe v3<br>
-    5 subsets · 2132 queries · 7 conditions<br>
-    qwen3.5:35b generator · llama3.1:8b judge<br>
-    Code + results: this repo
-  </div>
 </header>
 
 <main>
@@ -493,19 +486,18 @@
   <h2>Does image retrieval help?</h2>
 
   <p class="callout">
-    <strong>Sometimes. It depends on the query.</strong><br>
-    Overall pass@1 is the same for hybrid and reranked text (86.1%). But the two regimes make different predictions: on ~180 queries out of 1510 they disagree, and those disagreements cancel in the aggregate. The per-query-type table is where the signal lives.
+    <strong>Sometimes. It depends on the query.</strong>
   </p>
 
   <h3>When images help</h3>
   <ul>
-    <li><strong>Multi-hop</strong> (+6.8 over text): evidence spans multiple pages; the two streams retrieve partly <em>different</em> pages → more coverage for the generator.</li>
+    <li><strong>Multi-hop</strong> (+6.8 over text): evidence spans multiple pages; the two streams retrieve partly <em>different</em> pages, giving the generator broader coverage.</li>
     <li><strong>Numerical</strong> (+3.4): visual table layout (rows, columns, cell alignment) preserves structure that OCR partly loses.</li>
   </ul>
 
   <h3>When images don't help (or hurt)</h3>
   <ul>
-    <li><strong>Boolean</strong> (−5.4): text already retrieves the fact; extra image pages dilute the prompt and push the generator toward hedged / less decisive answers.</li>
+    <li><strong>Boolean</strong> (−5.4): text already retrieves the fact; extra image pages dilute the prompt and push the generator toward hedged, less decisive answers.</li>
     <li><strong>Extractive / enumerative / compare-contrast / open-ended</strong>: flat (±1 pt). The answer lives in a text span the text retriever already finds.</li>
   </ul>
 
@@ -517,7 +509,7 @@
     <li><strong>The open-source generator is likely the bottleneck.</strong> ViDoRe v3 reports +2.6 pts hybrid gain with Gemini 3 Pro. Our null result reflects a weaker vision stack, not uninformative images.</li>
   </ul>
 
-  <h2>Limitations and future work</h2>
+  <h2>Limitations</h2>
 
   <h3>LLM choices</h3>
   <ul style="font-size:11.5pt;">
@@ -533,7 +525,7 @@
     <li><strong>Domain-specific corpora</strong>: CS textbooks, finance reports, pharma regulations. Results may not transfer to general-purpose RAG.</li>
   </ul>
 
-  <h3>Future work</h3>
+  <h2>Future work</h2>
   <ul style="font-size:11.5pt;">
     <li>Rerun with stronger multimodal generators (<strong>Gemini 3 Pro</strong>, Qwen3-VL-235B) to isolate the generator-capability effect.</li>
     <li>Apply a controlled-verbosity prompt and swap the judge to rule out verbosity bias.</li>
@@ -544,7 +536,6 @@
 
 <footer>
   <span>Text parser: DeepSeek-OCR-2 · Text retriever: Jina v4 · Reranker: zerank-2 · Visual retriever: ColEmbed (Llama-Nemotron 3B v2) · Generator: qwen3.5:35b · Judge: llama3.1:8b · Benchmark: ViDoRe v3 (Loison et al., 2026)</span>
-  <span>Full 7-condition results (incl. NeMo parser comparison) + analysis code in the repository</span>
 </footer>
 
 </main>
