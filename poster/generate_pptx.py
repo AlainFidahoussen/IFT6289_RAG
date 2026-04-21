@@ -141,18 +141,24 @@ def table(x: int, y: int, data: list[list[str]], col_fracs: list[float],
 
 # ── HEADER ────────────────────────────────────────────────────────────────────
 tf = txb(PX, PY, W - 2 * PX, HDR_H)
+tf.paragraphs[0].alignment = PP_ALIGN.CENTER
+
 p0 = tf.paragraphs[0]
-add_run(p0, "Reproducing ", 34, bold=True, color=BLUE)
-add_run(p0, "ViDoRe v3", 34, bold=True, color=ORANGE)
-add_run(p0, " with open-weights models", 34, bold=True, color=BLUE)
+p0.alignment = PP_ALIGN.CENTER
+add_run(p0, "Does adding image retrieval help a strong text-based RAG?", 42, bold=True, color=BLUE)
 
 p1 = tf.add_paragraph()
-add_run(p1, "Does adding image retrieval help a strong text-based RAG?", 20, color=ORANGE)
+p1.alignment = PP_ALIGN.CENTER
+add_run(p1, "Reproducing ", 22, color=GREY)
+add_run(p1, "ViDoRe v3", 22, color=ORANGE)
+add_run(p1, " with open-weights models", 22, color=GREY)
 
 p2 = tf.add_paragraph()
+p2.alignment = PP_ALIGN.CENTER
 add_run(p2, "Alain Fidahoussen · Munyeong Kim · Aftab Gazali", 13, color=DARK)
 
 p3 = tf.add_paragraph()
+p3.alignment = PP_ALIGN.CENTER
 add_run(p3, "Université de Montréal · MILA", 11, italic=True, color=GREY)
 
 rect(PX, PY + HDR_H, W - 2 * PX, Mm(0.5), DARK)
