@@ -1,0 +1,13 @@
+overlap_colembed_nemo,n,hybrid_nemo,hybrid_deepseek,delta,overlap_stream,overlap_colembed_deepseek
+0.0,63,87.3,87.3,0.0,colembed_vs_nemo,
+1.0,183,83.1,84.2,1.1,colembed_vs_nemo,
+2.0,387,84.0,84.0,0.0,colembed_vs_nemo,
+3.0,470,84.3,86.8,2.6,colembed_vs_nemo,
+4.0,346,86.7,89.6,2.9,colembed_vs_nemo,
+5.0,61,82.0,78.7,-3.3,colembed_vs_nemo,
+,107,80.4,78.5,-1.9,colembed_vs_deepseek,0.0
+,212,85.4,87.3,1.9,colembed_vs_deepseek,1.0
+,434,83.4,85.3,1.8,colembed_vs_deepseek,2.0
+,418,85.4,86.6,1.2,colembed_vs_deepseek,3.0
+,290,85.9,88.6,2.8,colembed_vs_deepseek,4.0
+,49,87.8,85.7,-2.0,colembed_vs_deepseek,5.0

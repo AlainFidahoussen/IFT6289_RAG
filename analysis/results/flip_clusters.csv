@@ -1,0 +1,11 @@
+direction,cluster_id,size,top_terms
+nemo_only,0,4,"uses, uses slightly, slightly different, slightly, different, different wording"
+nemo_only,1,31,"answer, truth answer, truth, ground, ground truth, information"
+nemo_only,2,7,"answer captures, answer, captures essential, essential, captures, goldman"
+nemo_only,3,4,"lists, accurately lists, series, shares, answer, matching"
+nemo_only,4,8,"increase, key, differences, including, dividend, answer accurately"
+deepseek_only,0,6,"accurately lists, lists, answer, provide, does provide, does"
+deepseek_only,1,13,"answer, different, capturing essential, capturing, essential information, truth"
+deepseek_only,2,6,"data, provided, model, captures key, xml, relational"
+deepseek_only,3,43,"answer, captures, accurately captures, including, ground truth, truth"
+deepseek_only,4,8,"2023, accurately identifies, identifies, 2023 including, kering, answer"

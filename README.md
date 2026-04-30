@@ -85,6 +85,46 @@ NeMo leads by 2.2 pts without reranking and 4.0 pts with zerank-2. ColEmbed (no 
 
 NeMo reranked leads at 88.2%, DeepSeek reranked at 87.6%. The hybrid DeepSeek condition (88.7%) edges ahead overall; visual pages make up for weaker text retrieval on CS and pharma.
 
+## Additional material
+
+Post-hoc per-query breakdowns over all 5 subsets (1 510 queries). Scripts in `analysis/`; pre-computed results in `analysis/results/`.
+
+**pass@1 by query type — hybrid_nemo vs hybrid_deepseek, all subsets pooled**
+
+| Query type | n | hybrid_nemo | hybrid_deepseek | Δ |
+|---|---|---|---|---|
+| numerical | 297 | 73.7 | 74.1 | +0.3 |
+| extractive | 540 | 81.3 | 82.6 | +1.3 |
+| multi-hop | 118 | 89.8 | 91.5 | +1.7 |
+| enumerative | 194 | 80.4 | 80.9 | +0.5 |
+| boolean | 147 | 85.7 | 87.8 | +2.0 |
+| compare-contrast | 292 | 84.6 | 85.3 | +0.7 |
+| open-ended | 506 | 89.9 | 91.5 | +1.6 |
+
+DeepSeek hybrid wins on every query type, but margins are small (0.3–2.0 pts). The expected "faithful OCR helps on numerical/tables" effect does not appear — numerical has the smallest delta (+0.3 pts).
+
+**Easy vs hard queries — avg pass@1 across all 5 subsets**
+
+Easy = answered correctly by the closed-book baseline (qwen3.5:35b without retrieval). Hard = not.
+
+| Condition | Easy | Hard |
+|---|---|---|
+| jina_nemo_reranked | 91.9 | 74.7 |
+| jina_deepseek_reranked | 91.0 | 75.0 |
+| hybrid_deepseek | 90.6 | 73.5 |
+| hybrid_nemo | 89.0 | 72.3 |
+
+On easy queries, NeMo reranked is best (91.9%) and hybrid_nemo is worst (89.0%) — adding visual pages to NeMo hurts. On hard queries all four conditions cluster within 3 pts with no clear winner.
+
+To reproduce:
+
+```bash
+cd analysis && uv sync
+uv run python -m analysis.per_query_type
+uv run python -m analysis.easy_hard
+uv run python -m analysis.paired_bootstrap
+```
+
 ## Setup
 
 **Python:** ≥ 3.12 for all subprojects; `textual_extraction` requires ≥ 3.13.
@@ -167,5 +207,6 @@ All scripts are resume-safe: already-computed results are skipped on re-run.
 ├── textual_extraction/             DeepSeek-OCR-2 OCR pipeline
 ├── answer_generation/              generation + judging + analysis
 ├── answer_generation_no_retrieval/ closed-book baseline
+├── analysis/                       per-query breakdowns (CPU, no model)
 └── poster/                         A0 poster (PNG)
 ```

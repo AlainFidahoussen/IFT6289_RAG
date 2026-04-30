@@ -1,0 +1,22 @@
+[build-system]
+requires = ["flit_core >=3.2,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "analysis"
+version = "0.1.0"
+description = "Post-hoc per-query analysis of ViDoRe v3 answer-generation results"
+requires-python = ">=3.12"
+dependencies = [
+    "datasets>=4.5.0",
+    "loguru>=0.7.3",
+    "matplotlib>=3.8.0",
+    "numpy",
+    "pandas>=2.0.0",
+    "scikit-learn>=1.5.0",
+    "scipy>=1.11.0",
+    "tqdm",
+]
+
+[tool.ruff]
+line-length = 99

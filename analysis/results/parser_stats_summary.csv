@@ -1,0 +1,6 @@
+subset,n_pages,nemo_chars_median,deepseek_chars_median,nemo_lines_median,deepseek_lines_median,nemo_figure_placeholders_median,deepseek_figure_placeholders_median,nemo_html_tables_median,deepseek_html_tables_median,nemo_md_table_rows_median,deepseek_md_table_rows_median,nemo_equation_markers_median,deepseek_equation_markers_median,nemo_md_headings_median,deepseek_md_headings_median,chars_ratio_ds_over_ne
+computer_science,1360,2393,2189,20,44,0,0,0,0,0,0,0,0,0,2,0.91
+finance_en,2942,3809,3918,15,30,0,0,0,0,0,0,0,0,0,1,1.03
+pharmaceuticals,2313,695,683,8,17,0,0,0,0,0,0,0,0,0,1,0.98
+physics,1674,584,503,5,23,0,1,0,0,0,0,0,0,0,1,0.86
+finance_fr,2384,3977,4061,27,41,0,0,0,0,6,0,0,0,0,2,1.02

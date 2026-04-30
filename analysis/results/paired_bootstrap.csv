@@ -1,0 +1,25 @@
+comparison,scope,n,delta_pts,ci_low,ci_high,p_two_sided
+hybrid_deepseek - hybrid_nemo,all,1510,1.457,0.0,2.848,0.0539
+hybrid_deepseek - hybrid_nemo,computer_science,215,2.326,-0.465,5.116,0.1321
+hybrid_deepseek - hybrid_nemo,finance_en,309,1.618,-1.942,5.178,0.4551
+hybrid_deepseek - hybrid_nemo,pharmaceuticals,364,1.374,-1.648,4.396,0.4348
+hybrid_deepseek - hybrid_nemo,physics,302,2.98,-0.331,6.291,0.0862
+hybrid_deepseek - hybrid_nemo,finance_fr,320,-0.625,-4.062,2.5,0.7741
+jina_nemo_reranked - hybrid_deepseek,all,1510,1.06,-0.728,2.848,0.2598
+jina_nemo_reranked - hybrid_deepseek,computer_science,215,-2.791,-6.047,0.0,0.109
+jina_nemo_reranked - hybrid_deepseek,finance_en,309,1.942,-2.589,6.472,0.4509
+jina_nemo_reranked - hybrid_deepseek,pharmaceuticals,364,-0.824,-4.396,2.747,0.7112
+jina_nemo_reranked - hybrid_deepseek,physics,302,2.318,-0.993,5.629,0.2275
+jina_nemo_reranked - hybrid_deepseek,finance_fr,320,3.75,-0.625,8.125,0.1107
+hybrid_deepseek - jina_deepseek_reranked,all,1510,0.0,-1.722,1.722,1.0
+hybrid_deepseek - jina_deepseek_reranked,computer_science,215,0.0,-2.791,2.791,1.0
+hybrid_deepseek - jina_deepseek_reranked,finance_en,309,2.589,-2.265,7.12,0.3059
+hybrid_deepseek - jina_deepseek_reranked,pharmaceuticals,364,0.824,-2.473,4.121,0.693
+hybrid_deepseek - jina_deepseek_reranked,physics,302,-0.331,-3.642,2.98,0.9218
+hybrid_deepseek - jina_deepseek_reranked,finance_fr,320,-3.125,-7.187,0.938,0.1632
+jina_nemo_reranked - hybrid_nemo,all,1510,2.517,0.596,4.371,0.0093
+jina_nemo_reranked - hybrid_nemo,computer_science,215,-0.465,-4.651,3.721,0.9056
+jina_nemo_reranked - hybrid_nemo,finance_en,309,3.56,-0.647,8.091,0.128
+jina_nemo_reranked - hybrid_nemo,pharmaceuticals,364,0.549,-3.304,4.67,0.8404
+jina_nemo_reranked - hybrid_nemo,physics,302,5.298,1.656,8.94,0.0071
+jina_nemo_reranked - hybrid_nemo,finance_fr,320,3.125,-1.25,7.5,0.1818
