@@ -14,11 +14,13 @@ Does parser choice affect retrieval quality (NDCG@10) and end-to-end answer accu
 
 ## Main findings
 
-- NeMo wins retrieval by 2.2 pts without reranking and 4.0 pts with zerank-2.
-- The gap widens under reranking: zerank-2 lifts NeMo by +17.1 pts but DeepSeek by only +15.2. Cleaner input gives the reranker better signal.
-- On end-to-end accuracy the difference shrinks to under 1 pt. The generator partly compensates for lower-ranked pages.
-- ColEmbed (no text parsing at all) matches DeepSeek+zerank-2 at 71.3 NDCG avg, making it a viable parser-free baseline.
-- The hybrid DeepSeek condition (88.7% pass@1) slightly edges out NeMo reranked (88.2%) because visual pages cover what the weaker text retrieval misses.
+**Yes, parser choice affects retrieval.** NeMo leads DeepSeek by 2.2 pts without reranking and 4.0 pts with zerank-2.
+
+**The gap is reranker-dependent.** zerank-2 lifts NeMo by +17.1 pts but DeepSeek by only +15.2. NeMo's compact output gives the reranker cleaner signal to work with; verbose OCR dilutes it.
+
+**Parser choice also affects QA accuracy, but less.** The gap shrinks to under 1 pt with reranking. The generator partially absorbs the retrieval gap, so retrieval quality does not translate one-to-one into answer accuracy.
+
+**Visual retrieval sidesteps the parser question entirely.** ColEmbed (no text parsing) matches DeepSeek+zerank-2 at 71.3 NDCG avg and is a viable alternative when parser quality is uncertain.
 
 ## Pipeline
 
