@@ -8,9 +8,17 @@ A comparison of NeMo Retriever and DeepSeek-OCR-2 as document parsers in a hybri
 
 ---
 
-We fixed every component of the pipeline except the text parser, then asked: does parser choice affect retrieval quality and end-to-end answer accuracy on visually-rich document QA?
+## Research question
 
-NeMo wins retrieval by ~4 NDCG points once you add a reranker, and the gap grows under reranking (zerank-2 lifts NeMo by +17.1 pts but DeepSeek by only +15.2). On end-to-end accuracy the gap is smaller — adding visual pages from ColEmbed can offset DeepSeek's weaker text retrieval.
+Does parser choice affect retrieval quality (NDCG@10) and end-to-end answer accuracy (pass@1) in a hybrid RAG pipeline over visually-rich PDFs? We fix every component except the text parser and compare NeMo Retriever (retrieval-optimised, compact output) against DeepSeek-OCR-2 (faithful to visual layout, verbose output).
+
+## Main findings
+
+- NeMo wins retrieval by 2.2 pts without reranking and 4.0 pts with zerank-2.
+- The gap widens under reranking: zerank-2 lifts NeMo by +17.1 pts but DeepSeek by only +15.2. Cleaner input gives the reranker better signal.
+- On end-to-end accuracy the difference shrinks to under 1 pt. The generator partly compensates for lower-ranked pages.
+- ColEmbed (no text parsing at all) matches DeepSeek+zerank-2 at 71.3 NDCG avg, making it a viable parser-free baseline.
+- The hybrid DeepSeek condition (88.7% pass@1) slightly edges out NeMo reranked (88.2%) because visual pages cover what the weaker text retrieval misses.
 
 ## Pipeline
 
@@ -25,7 +33,7 @@ Only the parser changes. Embedder, reranker, generator, and judge are fixed acro
 
 ## Dataset
 
-ViDoRe v3 (Loison et al., 2026) — 3 English subsets.
+ViDoRe v3 (Loison et al., 2026), 3 English subsets.
 
 | Subset | Queries | Pages |
 |---|---|---|
@@ -48,7 +56,7 @@ ViDoRe v3 (Loison et al., 2026) — 3 English subsets.
 
 ## Results
 
-**Retrieval — NDCG@10**
+**Retrieval (NDCG@10)**
 
 | | CS | Finance | Pharma | avg |
 |---|---|---|---|---|
@@ -60,7 +68,7 @@ ViDoRe v3 (Loison et al., 2026) — 3 English subsets.
 
 NeMo leads by 2.2 pts without reranking and 4.0 pts with zerank-2. ColEmbed (no text parsing at all) ties DeepSeek+zerank-2 at 71.3 avg.
 
-**End-to-end accuracy — pass@1 %**
+**End-to-end accuracy (pass@1 %)**
 
 | | CS | Finance | Pharma | avg |
 |---|---|---|---|---|
@@ -73,13 +81,13 @@ NeMo leads by 2.2 pts without reranking and 4.0 pts with zerank-2. ColEmbed (no 
 | jina_deepseek_reranked | **95.3** | 79.0 | 88.5 | 87.6 |
 | hybrid_deepseek | **95.3** | 81.6 | **89.3** | **88.7** |
 
-NeMo reranked leads at 88.2%, DeepSeek reranked at 87.6%. The hybrid DeepSeek condition (88.7%) edges ahead overall — visual pages make up for weaker text retrieval on CS and pharma.
+NeMo reranked leads at 88.2%, DeepSeek reranked at 87.6%. The hybrid DeepSeek condition (88.7%) edges ahead overall; visual pages make up for weaker text retrieval on CS and pharma.
 
 ## Setup
 
 **Python:** ≥ 3.12 for all subprojects; `textual_extraction` requires ≥ 3.13.
 
-**Package manager:** [uv](https://docs.astral.sh/uv/). Each subproject has its own `pyproject.toml`. Inside any subproject, `uv sync` creates the virtual environment and installs all pinned dependencies — same effect as `pip install -r requirements.txt`.
+**Package manager:** [uv](https://docs.astral.sh/uv/). Each subproject has its own `pyproject.toml`. Inside any subproject, `uv sync` creates the virtual environment and installs all pinned dependencies (same effect as `pip install -r requirements.txt`).
 
 **Ollama models** (needed for generation and judging):
 
@@ -94,7 +102,7 @@ ollama pull llama3.1:8b   # LLM judge
 
 All commands run from inside the subproject directory. Install dependencies once per subproject with `uv sync`.
 
-### 1. OCR extraction — DeepSeek conditions only
+### 1. OCR extraction (DeepSeek conditions only)
 
 ```bash
 cd textual_extraction
@@ -142,7 +150,7 @@ uv run python -m analysis.easy_hard
 uv run python -m analysis.retrieval_value_by_type
 ```
 
-### Dry run — single subset
+### Dry run on a single subset
 
 To test the pipeline without running all 888 queries, call the individual scripts with `--subset` and `--lang`:
 
@@ -168,5 +176,5 @@ All scripts are resume-safe: already-computed results are skipped on re-run.
 ├── answer_generation/              generation + judging + analysis
 ├── answer_generation_no_retrieval/ closed-book baseline
 ├── analysis/                       per-query breakdowns (CPU, no model)
-└── poster/                         A0 poster (PPTX + PDF)
+└── poster/                         A0 poster (PNG)
 ```
