@@ -89,7 +89,7 @@ NeMo reranked leads at 88.2%, DeepSeek reranked at 87.6%. The hybrid DeepSeek co
 
 Post-hoc per-query breakdowns over all 5 subsets (1 510 queries). Scripts in `analysis/`; pre-computed results in `analysis/results/`.
 
-**pass@1 by query type — hybrid_nemo vs hybrid_deepseek, all subsets pooled**
+**pass@1 by query type (hybrid_nemo vs hybrid_deepseek, all subsets pooled)**
 
 | Query type | n | hybrid_nemo | hybrid_deepseek | Δ |
 |---|---|---|---|---|
@@ -101,9 +101,9 @@ Post-hoc per-query breakdowns over all 5 subsets (1 510 queries). Scripts in `an
 | compare-contrast | 292 | 84.6 | 85.3 | +0.7 |
 | open-ended | 506 | 89.9 | 91.5 | +1.6 |
 
-DeepSeek hybrid wins on every query type, but margins are small (0.3–2.0 pts). The expected "faithful OCR helps on numerical/tables" effect does not appear — numerical has the smallest delta (+0.3 pts).
+DeepSeek hybrid wins on every query type, but margins are small (0.3–2.0 pts). The expected "faithful OCR helps on numerical/tables" effect does not appear; numerical has the smallest delta (+0.3 pts).
 
-**Easy vs hard queries — avg pass@1 across all 5 subsets**
+**Easy vs hard queries, avg pass@1 across all 5 subsets**
 
 Easy = answered correctly by the closed-book baseline (qwen3.5:35b without retrieval). Hard = not.
 
@@ -114,7 +114,7 @@ Easy = answered correctly by the closed-book baseline (qwen3.5:35b without retri
 | hybrid_deepseek | 90.6 | 73.5 |
 | hybrid_nemo | 89.0 | 72.3 |
 
-On easy queries, NeMo reranked is best (91.9%) and hybrid_nemo is worst (89.0%) — adding visual pages to NeMo hurts. On hard queries all four conditions cluster within 3 pts with no clear winner.
+On easy queries, NeMo reranked is best (91.9%) and hybrid_nemo is worst (89.0%); adding visual pages to NeMo hurts. On hard queries all four conditions cluster within 3 pts with no clear winner.
 
 To reproduce:
 
