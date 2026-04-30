@@ -142,16 +142,6 @@ uv run answer_generation/analyze.py  # prints final comparison table
 cd answer_generation_no_retrieval && uv sync && bash run_all.sh
 ```
 
-### 5. Post-hoc analysis
-
-```bash
-cd analysis && uv sync
-uv run python -m analysis.per_query_type
-uv run python -m analysis.paired_bootstrap
-uv run python -m analysis.easy_hard
-uv run python -m analysis.retrieval_value_by_type
-```
-
 ### Dry run on a single subset
 
 To test the pipeline without running all 888 queries, call the individual scripts with `--subset` and `--lang`:
@@ -177,6 +167,5 @@ All scripts are resume-safe: already-computed results are skipped on re-run.
 ├── textual_extraction/             DeepSeek-OCR-2 OCR pipeline
 ├── answer_generation/              generation + judging + analysis
 ├── answer_generation_no_retrieval/ closed-book baseline
-├── analysis/                       per-query breakdowns (CPU, no model)
 └── poster/                         A0 poster (PNG)
 ```
